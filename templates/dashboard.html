@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Braille Analysis Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tilt.js/1.2.1/tilt.jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #FF6584;
+            --dark: #2D3748;
+            --light: #F7FAFC;
+            --accent: #48BB78;
+            --text: #4A5568;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        .nav-container {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .nav-icons {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 10px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-icon:hover {
+            transform: translateY(-5px);
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        .nav-icon::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .nav-icon:hover::after {
+            opacity: 1;
+            bottom: -35px;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 100px 20px 40px;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .dashboard-header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .upload-section, .results-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 15px;
+        }
+
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(108, 99, 255, 0.1);
+        }
+
+        .upload-area i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .upload-area p {
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 25px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.4);
+        }
+
+        .file-info {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-container.show {
+            display: block;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .results-content {
+            display: none;
+        }
+
+        .results-content.show {
+            display: block;
+        }
+
+        .result-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 1.2rem;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            height: 250px;
+        }
+
+        .braille-pattern {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.05;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="20" cy="20" r="3" fill="white"/><circle cx="20" cy="50" r="3" fill="white"/><circle cx="20" cy="80" r="3" fill="white"/><circle cx="50" cy="20" r="3" fill="white"/><circle cx="50" cy="50" r="3" fill="white"/><circle cx="50" cy="80" r="3" fill="white"/><circle cx="80" cy="20" r="3" fill="white"/><circle cx="80" cy="50" r="3" fill="white"/><circle cx="80" cy="80" r="3" fill="white"/></svg>');
+            z-index: -1;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding-top: 80px;
+            }
+
+            .dashboard-header h1 {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .nav-icons {
+                padding: 8px 15px;
+            }
+
+            .nav-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+                margin: 0 5px;
+            }
+
+            .nav-icon::after {
+                font-size: 0.7rem;
+                bottom: -30px;
+            }
+
+            .nav-icon:hover::after {
+                bottom: -25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div class="braille-pattern"></div>
+
+    <!-- Navigation Icons -->
+    <div class="nav-container">
+        <div class="nav-icons">
+            <div class="nav-icon" data-tooltip="Home" onclick="window.location.href='/'">
+                <i class="fas fa-home"></i>
+            </div>
+            <div class="nav-icon" data-tooltip="Dashboard" onclick="window.location.href='/dashboard'">
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <div class="nav-icon" data-tooltip="Upload" onclick="window.location.href='/dashboard'">
+                <i class="fas fa-upload"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>Braille Analysis Dashboard</h1>
+            <p>Upload your Braille documents and analyze their linguistic patterns</p>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="upload-section" data-tilt data-tilt-scale="1.02" data-tilt-glare data-tilt-max-glare="0.1">
+                <h2 class="section-title"><i class="fas fa-file-upload"></i> Upload Document</h2>
+
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag & drop your Braille document here</p>
+                    <p>or</p>
+                    <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx,.brf" style="display: none;">
+                    <button class="btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+                </div>
+
+                <div class="file-info" id="fileInfo">
+                    <p><strong>Selected file:</strong> <span id="fileName"></span></p>
+                    <p><strong>File size:</strong> <span id="fileSize"></span></p>
+                </div>
+
+                <div class="progress-container" id="progressContainer">
+                    <p>Analyzing document...</p>
+                    <div class="progress-bar">
+                        <div class="progress" id="progressBar"></div>
+                    </div>
+                    <p id="progressText">0% complete</p>
+                </div>
+
+                <button class="btn" id="analyzeBtn" style="width: 100%; display: none;">Analyze Document</button>
+            </div>
+
+            <div class="results-section" data-tilt data-tilt-scale="1.02" data-tilt-glare data-tilt-max-glare="0.1">
+                <h2 class="section-title"><i class="fas fa-chart-bar"></i> Analysis Results</h2>
+
+                <div id="emptyResults">
+                    <p>Upload and analyze a Braille document to see results here.</p>
+                </div>
+
+                <div class="results-content" id="resultsContent">
+                    <div class="result-item">
+                        <div class="result-label">Document Name</div>
+                        <div class="result-value" id="resultFilename">-</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Language</div>
+                        <div class="result-value" id="resultLanguage">-</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Braille Grade</div>
+                        <div class="result-value" id="resultGrade">-</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Word Count</div>
+                        <div class="result-value" id="resultWordCount">-</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Braille Characters</div>
+                        <div class="result-value" id="resultBrailleChars">-</div>
+                    </div>
+
+                    <div class="result-item">
+                        <div class="result-label">Complexity Score</div>
+                        <div class="result-value" id="resultComplexity">-</div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="patternChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Particle.js configuration
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 60,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#6C63FF"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    }
+                },
+                "opacity": {
+                    "value": 0.5,
+                    "random": false
+                },
+                "size": {
+                    "value": 3,
+                    "random": true
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#6C63FF",
+                    "opacity": 0.4,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 2,
+                    "direction": "none",
+                    "random": false,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 140,
+                        "line_linked": {
+                            "opacity": 1
+                        }
+                    },
+                    "push": {
+                        "particles_nb": 4
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+
+        // DOM Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const emptyResults = document.getElementById('emptyResults');
+        const resultsContent = document.getElementById('resultsContent');
+
+        // Result elements
+        const resultFilename = document.getElementById('resultFilename');
+        const resultLanguage = document.getElementById('resultLanguage');
+        const resultGrade = document.getElementById('resultGrade');
+        const resultWordCount = document.getElementById('resultWordCount');
+        const resultBrailleChars = document.getElementById('resultBrailleChars');
+        const resultComplexity = document.getElementById('resultComplexity');
+
+        // Chart variable
+        let patternChart;
+
+        // File upload handling
+        fileInput.addEventListener('change', handleFileSelect);
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('drop', handleDrop);
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            processFile(file);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.style.borderColor = '#6C63FF';
+            uploadArea.style.backgroundColor = 'rgba(108, 99, 255, 0.1)';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            uploadArea.style.backgroundColor = 'transparent';
+
+            const file = e.dataTransfer.files[0];
+            processFile(file);
+        }
+
+        function processFile(file) {
+            if (!file) return;
+
+            // Validate file type
+            const validTypes = ['text/plain', 'application/pdf', 'application/msword',
+                               'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            const fileExt = file.name.split('.').pop().toLowerCase();
+
+            if (!['txt', 'pdf', 'doc', 'docx', 'brf'].includes(fileExt)) {
+                alert('Please upload a valid file type (TXT, PDF, DOC, DOCX, BRF)');
+                return;
+            }
+
+            // Display file info
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.add('show');
+            analyzeBtn.style.display = 'block';
+
+            // Store file for upload
+            analyzeBtn.onclick = () => uploadFile(file);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Show progress
+            fileInfo.classList.remove('show');
+            analyzeBtn.style.display = 'none';
+            progressContainer.classList.add('show');
+
+            // Simulate progress (in real app, you'd use actual upload progress)
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 90) progress = 90;
+                updateProgress(progress);
+            }, 300);
+
+            // Send to server
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                updateProgress(100);
+
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    resetUpload();
+                } else {
+                    // Show results
+                    setTimeout(() => {
+                        displayResults(data);
+                        progressContainer.classList.remove('show');
+                    }, 500);
+                }
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                alert('Upload failed: ' + error.message);
+                resetUpload();
+            });
+        }
+
+        function updateProgress(percent) {
+            progressBar.style.width = percent + '%';
+            progressText.textContent = Math.round(percent) + '% complete';
+        }
+
+        function resetUpload() {
+            fileInput.value = '';
+            fileInfo.classList.remove('show');
+            analyzeBtn.style.display = 'none';
+            progressContainer.classList.remove('show');
+            progressBar.style.width = '0%';
+            progressText.textContent = '0% complete';
+        }
+
+        function displayResults(data) {
+            emptyResults.style.display = 'none';
+            resultsContent.classList.add('show');
+
+            // Update result fields
+            resultFilename.textContent = data.filename;
+            resultLanguage.textContent = data.language;
+            resultGrade.textContent = data.grade;
+            resultWordCount.textContent = data.word_count.toLocaleString();
+            resultBrailleChars.textContent = data.braille_characters.toLocaleString();
+            resultComplexity.textContent = data.complexity_score;
+
+            // Update chart
+            updateChart(data.patterns);
+        }
+
+        function updateChart(patterns) {
+            const ctx = document.getElementById('patternChart').getContext('2d');
+
+            // Destroy previous chart if exists
+            if (patternChart) {
+                patternChart.destroy();
+            }
+
+            patternChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Most Common Patterns', 'Least Common Patterns'],
+                    datasets: [
+                        {
+                            label: patterns.most_common[0],
+                            data: [80, 0],
+                            backgroundColor: 'rgba(108, 99, 255, 0.8)',
+                            borderColor: 'rgba(108, 99, 255, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: patterns.most_common[1],
+                            data: [65, 0],
+                            backgroundColor: 'rgba(108, 99, 255, 0.6)',
+                            borderColor: 'rgba(108, 99, 255, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: patterns.most_common[2],
+                            data: [50, 0],
+                            backgroundColor: 'rgba(108, 99, 255, 0.4)',
+                            borderColor: 'rgba(108, 99, 255, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: patterns.least_common[0],
+                            data: [0, 15],
+                            backgroundColor: 'rgba(255, 101, 132, 0.8)',
+                            borderColor: 'rgba(255, 101, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: patterns.least_common[1],
+                            data: [0, 10],
+                            backgroundColor: 'rgba(255, 101, 132, 0.6)',
+                            borderColor: 'rgba(255, 101, 132, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: patterns.least_common[2],
+                            data: [0, 5],
+                            backgroundColor: 'rgba(255, 101, 132, 0.4)',
+                            borderColor: 'rgba(255, 101, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Braille Pattern Frequency',
+                            color: 'rgba(255, 255, 255, 0.9)',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize tilt.js
+        $(document).ready(function() {
+            $('.upload-section, .results-section').tilt({
+                glare: true,
+                maxGlare: 0.1,
+                scale: 1.02
+            });
+        });
+    </script>
+</body>
+</html>

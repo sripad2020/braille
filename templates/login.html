@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Braille Literature Analysis</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tilt.js/1.2.1/tilt.jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --secondary: #FF6584;
+            --dark: #2D3748;
+            --light: #F7FAFC;
+            --accent: #48BB78;
+            --text: #4A5568;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .braille-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.05;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="20" cy="20" r="3" fill="white"/><circle cx="20" cy="50" r="3" fill="white"/><circle cx="20" cy="80" r="3" fill="white"/><circle cx="50" cy="20" r="3" fill="white"/><circle cx="50" cy="50" r="3" fill="white"/><circle cx="50" cy="80" r="3" fill="white"/><circle cx="80" cy="20" r="3" fill="white"/><circle cx="80" cy="50" r="3" fill="white"/><circle cx="80" cy="80" r="3" fill="white"/></svg>');
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transform-style: preserve-3d;
+            transition: all 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(108, 99, 255, 0.3);
+        }
+
+        .login-header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px 15px 50px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2);
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus + i {
+            color: var(--primary);
+        }
+
+        .btn {
+            display: inline-block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(108, 99, 255, 0.4);
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+
+        .login-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .social-login {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-btn:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        /* Three.js dots floating in background */
+        .three-dots {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 576px) {
+            .login-container {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+
+            .login-header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <div class="braille-pattern"></div>
+    <div class="three-dots" id="three-dots"></div>
+
+    <div class="login-container" data-tilt data-tilt-max="5" data-tilt-glare data-tilt-max-glare="0.2">
+        <div class="login-header">
+            <h1>Welcome Back</h1>
+            <p>Sign in to access Braille Literature Analysis</p>
+        </div>
+
+        <form action="/log" method="POST">
+            <div class="input-group">
+                <input type="email" placeholder="Email Address" required>
+                <i class="fas fa-envelope"></i>
+            </div>
+
+            <div class="input-group">
+                <input type="password" placeholder="Password" required>
+                <i class="fas fa-lock"></i>
+            </div>
+
+             <button type="submit" class="btn">Login</button>
+
+            <div class="login-footer">
+                <p>Don't have an account? <a href="register.html">Sign up</a></p>
+                <p><a href="forgot-password.html">Forgot password?</a></p>
+            </div>
+
+            <div class="social-login">
+                <a href="#" class="social-btn" title="Login with Google">
+                    <i class="fab fa-google"></i>
+                </a>
+                <a href="#" class="social-btn" title="Login with GitHub">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="#" class="social-btn" title="Login with Twitter">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Particle.js configuration
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": 60,
+                    "density": {
+                        "enable": true,
+                        "value_area": 800
+                    }
+                },
+                "color": {
+                    "value": "#6C63FF"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    },
+                    "polygon": {
+                        "nb_sides": 5
+                    }
+                },
+                "opacity": {
+                    "value": 0.5,
+                    "random": false,
+                    "anim": {
+                        "enable": false,
+                        "speed": 1,
+                        "opacity_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "size": {
+                    "value": 3,
+                    "random": true,
+                    "anim": {
+                        "enable": false,
+                        "speed": 40,
+                        "size_min": 0.1,
+                        "sync": false
+                    }
+                },
+                "line_linked": {
+                    "enable": true,
+                    "distance": 150,
+                    "color": "#6C63FF",
+                    "opacity": 0.3,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": 1.5,
+                    "direction": "none",
+                    "random": false,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false,
+                    "attract": {
+                        "enable": false,
+                        "rotateX": 600,
+                        "rotateY": 1200
+                    }
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "grab"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 140,
+                        "line_linked": {
+                            "opacity": 0.8
+                        }
+                    },
+                    "bubble": {
+                        "distance": 400,
+                        "size": 40,
+                        "duration": 2,
+                        "opacity": 8,
+                        "speed": 3
+                    },
+                    "repulse": {
+                        "distance": 200,
+                        "duration": 0.4
+                    },
+                    "push": {
+                        "particles_nb": 4
+                    },
+                    "remove": {
+                        "particles_nb": 2
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+
+        // Three.js floating dots for login form background
+        const dotsContainer = document.getElementById('three-dots');
+        const width = dotsContainer.clientWidth;
+        const height = dotsContainer.clientHeight;
+
+        // Scene setup
+        const scene = new THREE.Scene();
+
+        // Camera
+        const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        camera.position.z = 30;
+
+        // Renderer
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(width, height);
+        dotsContainer.appendChild(renderer.domElement);
+
+        // Braille dots
+        const dotGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+        const dotMaterial = new THREE.MeshPhongMaterial({
+            color: 0x6C63FF,
+            emissive: 0x6C63FF,
+            emissiveIntensity: 0.1,
+            shininess: 100,
+            transparent: true,
+            opacity: 0.7
+        });
+
+        // Create floating dots
+        const dots = [];
+        const dotCount = 30;
+
+        for (let i = 0; i < dotCount; i++) {
+            const dot = new THREE.Mesh(dotGeometry, dotMaterial);
+
+            // Random position within a sphere
+            const radius = 15;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI;
+            const x = radius * Math.sin(phi) * Math.cos(theta);
+            const y = radius * Math.sin(phi) * Math.sin(theta);
+            const z = radius * Math.cos(phi);
+
+            dot.position.set(x, y, z);
+
+            // Random scale and rotation speed
+            dot.scale.setScalar(0.5 + Math.random() * 0.5);
+            dot.userData = {
+                rotationSpeed: new THREE.Vector3(
+                    Math.random() * 0.02 - 0.01,
+                    Math.random() * 0.02 - 0.01,
+                    Math.random() * 0.02 - 0.01
+                ),
+                pulseSpeed: Math.random() * 0.005 + 0.005,
+                pulseSize: Math.random() * 0.3 + 0.7
+            };
+
+            scene.add(dot);
+            dots.push(dot);
+        }
+
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(1, 1, 1);
+        scene.add(directionalLight);
+
+        const pointLight = new THREE.PointLight(0x6C63FF, 0.5, 50);
+        pointLight.position.set(5, 5, 5);
+        scene.add(pointLight);
+
+        // Animation
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate and pulse dots
+            dots.forEach((dot) => {
+                dot.rotation.x += dot.userData.rotationSpeed.x;
+                dot.rotation.y += dot.userData.rotationSpeed.y;
+                dot.rotation.z += dot.userData.rotationSpeed.z;
+
+                // Pulsing effect
+                const pulse = dot.userData.pulseSize + Math.sin(Date.now() * dot.userData.pulseSpeed) * 0.2;
+                dot.scale.set(pulse, pulse, pulse);
+            });
+
+            // Rotate scene slightly
+            scene.rotation.y += 0.0005;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const newWidth = dotsContainer.clientWidth;
+            const newHeight = dotsContainer.clientHeight;
+
+            camera.aspect = newWidth / newHeight;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(newWidth, newHeight);
+        });
+
+        // Tilt.js initialization for login container
+        $(document).ready(function() {
+            $('.login-container').tilt({
+                glare: true,
+                maxGlare: 0.2,
+                maxTilt: 5
+            });
+        });
+    </script>
+</body>
+</html>

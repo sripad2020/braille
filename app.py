@@ -6,11 +6,19 @@ from werkzeug.utils import secure_filename
 import PyPDF2
 import pytesseract
 from PIL import Image
-
+import io
 
 app = Flask(__name__)
 app.secret_key = "The APP key"
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'pdf'}
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 
+# Ensure upload directory exists
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+
+# Initialize database
 def init_db():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
@@ -24,90 +32,6 @@ def init_db():
 
 
 init_db()
-
-
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-@app.route('/login',methods=['GET','POST'])
-def logs():
-    return render_template('login.html')
-
-@app.route('/log', methods=['POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-
-        conn = sqlite3.connect('users.db')
-        c = conn.cursor()
-        c.execute('SELECT * FROM users WHERE email = ?', (email,))
-        user = c.fetchone()
-        conn.close()
-
-        if user and check_password_hash(user[3], password):
-            session['user_id'] = user[0]
-            session['username'] = user[1]
-            session['email']=email
-            flash('Login successful!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid email or password', 'error')
-
-    return render_template('login.html')
-
-
-@app.route('/signups')
-def sign():
-    return render_template('signup.html')
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
-        confirm_password = request.form['confirm_password']
-
-        # Basic validation
-        if len(username) < 3:
-            flash('Username must be at least 3 characters', 'error')
-            return redirect(url_for('signup'))
-        if len(password) < 8:
-            flash('Password must be at least 8 characters', 'error')
-            return redirect(url_for('signup'))
-        if password != confirm_password:
-            flash('Passwords do not match', 'error')
-            return redirect(url_for('signup'))
-
-        conn = sqlite3.connect('users.db')
-        c = conn.cursor()
-        c.execute('SELECT * FROM users WHERE username = ? OR email = ?', (username, email))
-        existing_user = c.fetchone()
-
-        if existing_user:
-            conn.close()
-            flash('Username or email already exists', 'error')
-            return redirect(url_for('signup'))
-
-        # Hash password and store user
-        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-        c.execute('INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
-                  (username, email, hashed_password))
-        conn.commit()
-        conn.close()
-
-        flash('Account created successfully! Please log in.', 'success')
-        return redirect('/login')
-
-    return render_template('signup.html')
-
-
-
-app.config['ALLOWED_EXTENSIONS'] = {'pdf','.txt'}
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 # Braille translation mappings
 braille_to_text = {
@@ -133,12 +57,14 @@ braille_to_text = {
     '⠀': ' ',
 }
 
+
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 
 def contains_braille(text):
+    """Check if text contains Braille patterns (Unicode range 2800-28FF)"""
     for char in text:
         if '\u2800' <= char <= '\u28ff':
             return True
@@ -146,7 +72,10 @@ def contains_braille(text):
 
 
 def extract_text_from_pdf(filepath):
+    """Extract text from PDF, handling both text and image-based PDFs"""
     text = ""
+
+    # First try reading as text PDF
     try:
         with open(filepath, 'rb') as f:
             reader = PyPDF2.PdfReader(f)
@@ -166,7 +95,9 @@ def extract_text_from_pdf(filepath):
 
     return text
 
+
 def convert_pdf_to_images(filepath):
+    """Convert PDF pages to images (simplified version)"""
     images = []
     try:
         with open(filepath, 'rb') as f:
@@ -179,11 +110,15 @@ def convert_pdf_to_images(filepath):
         print(f"PDF to image conversion error: {e}")
     return images
 
+
 def translate_braille(text, language='en'):
+    """Convert Braille Unicode characters to specified language"""
     translated = []
     i = 0
     while i < len(text):
         char = text[i]
+
+        # Handle numbers (if next char is a number after ⠼)
         if char == '⠼' and i + 1 < len(text):
             next_char = text[i + 1]
             num_key = f'⠼{next_char}'
@@ -191,26 +126,36 @@ def translate_braille(text, language='en'):
                 translated.append(braille_to_text[num_key])
                 i += 2
                 continue
+
+        # Handle capital letters (if next char is a letter after ⠠)
         elif char == '⠠' and i + 1 < len(text):
             next_char = text[i + 1]
             if next_char in braille_to_text and next_char.isalpha():
                 translated.append(braille_to_text[next_char].upper())
                 i += 2
                 continue
+
+        # Default case
         translated.append(braille_to_text.get(char, char))
         i += 1
+
     return ''.join(translated)
+
+
+# ... [Keep all your existing routes: home, logs, login, signups, signup, logout] ...
 
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'user_id' not in session:
         flash('Please log in first', 'error')
         return redirect(url_for('login'))
+
     if request.method == 'POST':
         # Check if file was uploaded
         if 'file' not in request.files:
             flash('No file selected', 'error')
             return redirect(request.url)
+
         file = request.files['file']
         language = request.form.get('language', 'en')
 
@@ -223,22 +168,31 @@ def dashboard():
             return redirect(request.url)
 
         try:
+            # Save the file
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
 
+            # Extract text from PDF
             text = extract_text_from_pdf(filepath)
+
             if not text.strip():
                 flash('The PDF appears to be empty or could not be read', 'error')
                 return redirect(request.url)
+
+            # Check for Braille characters
             if not contains_braille(text):
                 flash('The PDF does not contain Braille characters', 'error')
                 return redirect(request.url)
+
+            # Translate Braille to text
             translated = translate_braille(text, language)
 
+            # Store results in session
             session['original_text'] = text[:1000] + "..." if len(text) > 1000 else text
             session['translated_text'] = translated[:1000] + "..." if len(translated) > 1000 else translated
             session['translation_language'] = language
+
             flash('File processed successfully!', 'success')
             return redirect(url_for('dashboard'))
 
@@ -251,13 +205,6 @@ def dashboard():
                            original_text=session.get('original_text'),
                            translated_text=session.get('translated_text'),
                            language=session.get('translation_language', 'en'))
-
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    flash('You have been logged out', 'info')
-    return redirect(url_for('login'))
 
 
 if __name__ == '__main__':

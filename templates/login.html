@@ -233,32 +233,19 @@
 
         <form action="/log" method="POST">
             <div class="input-group">
-                <input type="email" placeholder="Email Address" required>
+                <input type="email" placeholder="Email Address" required name="email">
                 <i class="fas fa-envelope"></i>
             </div>
 
             <div class="input-group">
-                <input type="password" placeholder="Password" required>
+                <input type="password" placeholder="Password" required name="password">
                 <i class="fas fa-lock"></i>
             </div>
 
              <button type="submit" class="btn">Login</button>
 
             <div class="login-footer">
-                <p>Don't have an account? <a href="register.html">Sign up</a></p>
-                <p><a href="forgot-password.html">Forgot password?</a></p>
-            </div>
-
-            <div class="social-login">
-                <a href="#" class="social-btn" title="Login with Google">
-                    <i class="fab fa-google"></i>
-                </a>
-                <a href="#" class="social-btn" title="Login with GitHub">
-                    <i class="fab fa-github"></i>
-                </a>
-                <a href="#" class="social-btn" title="Login with Twitter">
-                    <i class="fab fa-twitter"></i>
-                </a>
+                <p>Don't have an account? <a href="/signups">Sign up</a></p>
             </div>
         </form>
     </div>

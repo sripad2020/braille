@@ -5,7 +5,8 @@ import os
 from werkzeug.utils import secure_filename
 import PyPDF2
 import pytesseract
-from PIL import Image
+from docx import Document
+from deep_translator import GoogleTranslator
 
 
 app = Flask(__name__)
@@ -102,12 +103,9 @@ def signup():
 
     return render_template('signup.html')
 
-
-
-app.config['ALLOWED_EXTENSIONS'] = {'pdf','.txt'}
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'txt', 'doc', 'docx'}
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Braille translation mappings
 braille_to_text = {
@@ -117,27 +115,27 @@ braille_to_text = {
     '⠅': 'k', '⠇': 'l', '⠍': 'm', '⠝': 'n', '⠕': 'o',
     '⠏': 'p', '⠟': 'q', '⠗': 'r', '⠎': 's', '⠞': 't',
     '⠥': 'u', '⠧': 'v', '⠺': 'w', '⠭': 'x', '⠽': 'y', '⠵': 'z',
-
     # Numbers (1-0)
     '⠼⠁': '1', '⠼⠃': '2', '⠼⠉': '3', '⠼⠙': '4', '⠼⠑': '5',
     '⠼⠋': '6', '⠼⠛': '7', '⠼⠓': '8', '⠼⠊': '9', '⠼⠚': '0',
-
     # Punctuation
     '⠂': ',', '⠲': '.', '⠆': ';', '⠤': '-',
     '⠦': '?', '⠖': '!', '⠶': '"', '⠄': "'",
-
     # Common contractions
     '⠯': 'and', '⠿': 'for', '⠷': 'the', '⠮': 'this', '⠾': 'with',
-
     # Space
     '⠀': ' ',
 }
+
 
 def allowed_file(filename):
     return '.' in filename and \
         filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-
+def convert_pdf_to_images(filepath):
+    # In a production environment, you would use pdf2image or similar
+    # For this example, we'll return an empty list
+    return []
 def contains_braille(text):
     for char in text:
         if '\u2800' <= char <= '\u28ff':
@@ -145,53 +143,51 @@ def contains_braille(text):
     return False
 
 
-def extract_text_from_pdf(filepath):
+def extract_text_from_file(filepath, extension):
     text = ""
     try:
-        with open(filepath, 'rb') as f:
-            reader = PyPDF2.PdfReader(f)
-            for page in reader.pages:
-                text += page.extract_text() or ""
+        if extension == 'pdf':
+            with open(filepath, 'rb') as f:
+                reader = PyPDF2.PdfReader(f)
+                for page in reader.pages:
+                    text += page.extract_text() or ""
+
+            # If no text found, try OCR (for image-based PDFs)
+            if not text.strip():
+                try:
+                    images = convert_pdf_to_images(filepath)
+                    for img in images:
+                        text += pytesseract.image_to_string(img, config='--psm 6')
+                except Exception as e:
+                    print(f"OCR error: {e}")
+
+        elif extension == 'txt':
+            with open(filepath, 'r', encoding='utf-8') as f:
+                text = f.read()
+
+        elif extension in ['doc', 'docx']:
+            doc = Document(filepath)
+            for para in doc.paragraphs:
+                text += para.text + '\n'
+
     except Exception as e:
-        print(f"PDF text extraction error: {e}")
-
-    # If no text found, try OCR (for image-based PDFs)
-    if not text.strip():
-        try:
-            images = convert_pdf_to_images(filepath)
-            for img in images:
-                text += pytesseract.image_to_string(img, config='--psm 6')
-        except Exception as e:
-            print(f"OCR error: {e}")
-
+        print(f"Error extracting text from {extension}: {e}")
     return text
 
-def convert_pdf_to_images(filepath):
-    images = []
-    try:
-        with open(filepath, 'rb') as f:
-            reader = PyPDF2.PdfReader(f)
-            for page in reader.pages:
-                # This is a simplified approach - in production use pdf2image or similar
-                # For demo purposes, we'll just return an empty list
-                pass
-    except Exception as e:
-        print(f"PDF to image conversion error: {e}")
-    return images
 
-def translate_braille(text, language='en'):
+def translate_braille(text, language):
     translated = []
     i = 0
     while i < len(text):
         char = text[i]
-        if char == '⠼' and i + 1 < len(text):
+        if char == '⠼' and i + 1 < len(text):  # Number prefix
             next_char = text[i + 1]
             num_key = f'⠼{next_char}'
             if num_key in braille_to_text:
                 translated.append(braille_to_text[num_key])
                 i += 2
                 continue
-        elif char == '⠠' and i + 1 < len(text):
+        elif char == '⠠' and i + 1 < len(text):  # Capital letter prefix
             next_char = text[i + 1]
             if next_char in braille_to_text and next_char.isalpha():
                 translated.append(braille_to_text[next_char].upper())
@@ -199,53 +195,19 @@ def translate_braille(text, language='en'):
                 continue
         translated.append(braille_to_text.get(char, char))
         i += 1
-    return ''.join(translated)
+    base_translation = ''.join(translated)
+    if language.lower() != 'english':
+        try:
+            return GoogleTranslator(source='auto', target=language.lower()).translate(base_translation)
+        except:
+            return base_translation
+    return base_translation
 
-@app.route('/dashboard', methods=['GET', 'POST'])
+@app.route('/dashboard', methods=['GET'])
 def dashboard():
     if 'user_id' not in session:
         flash('Please log in first', 'error')
         return redirect(url_for('login'))
-    if request.method == 'POST':
-        # Check if file was uploaded
-        if 'file' not in request.files:
-            flash('No file selected', 'error')
-            return redirect(request.url)
-        file = request.files['file']
-        language = request.form.get('language', 'en')
-
-        if file.filename == '':
-            flash('No file selected', 'error')
-            return redirect(request.url)
-
-        if not allowed_file(file.filename):
-            flash('Only PDF files are allowed', 'error')
-            return redirect(request.url)
-
-        try:
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-
-            text = extract_text_from_pdf(filepath)
-            if not text.strip():
-                flash('The PDF appears to be empty or could not be read', 'error')
-                return redirect(request.url)
-            if not contains_braille(text):
-                flash('The PDF does not contain Braille characters', 'error')
-                return redirect(request.url)
-            translated = translate_braille(text, language)
-
-            session['original_text'] = text[:1000] + "..." if len(text) > 1000 else text
-            session['translated_text'] = translated[:1000] + "..." if len(translated) > 1000 else translated
-            session['translation_language'] = language
-            flash('File processed successfully!', 'success')
-            return redirect(url_for('dashboard'))
-
-        except Exception as e:
-            flash(f'Error processing file: {str(e)}', 'error')
-            return redirect(request.url)
-
     return render_template('dashboard.html',
                            username=session.get('username'),
                            original_text=session.get('original_text'),
@@ -253,12 +215,63 @@ def dashboard():
                            language=session.get('translation_language', 'en'))
 
 
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'user_id' not in session:
+        flash('Please log in first', 'error')
+        return redirect(url_for('login'))
+
+    if 'file' not in request.files:
+        flash('No file selected', 'error')
+        return redirect(url_for('dashboard'))
+
+    file = request.files['file']
+    language = request.form.get('language', 'en')
+
+    if file.filename == '':
+        flash('No file selected', 'error')
+        return redirect(url_for('dashboard'))
+
+    if not allowed_file(file.filename):
+        flash('Allowed file types are PDF, TXT, DOC, and DOCX', 'error')
+        return redirect(url_for('dashboard'))
+
+    try:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+
+        extension = filename.rsplit('.', 1)[1].lower()
+        text = extract_text_from_file(filepath, extension)
+
+        if not text.strip():
+            flash('The file appears to be empty or could not be read', 'error')
+            return redirect(url_for('dashboard'))
+
+        if not contains_braille(text):
+            flash('The file does not contain Braille characters', 'error')
+            return redirect(url_for('dashboard'))
+
+        translated = translate_braille(text, language)
+
+        # Store results in session (limited to 1000 chars to prevent session size issues)
+        session['original_text'] = text[:1000] + "..." if len(text) > 1000 else text
+        session['translated_text'] = translated[:1000] + "..." if len(translated) > 1000 else translated
+        session['translation_language'] = language
+
+        flash('File processed successfully!', 'success')
+        return redirect(url_for('dashboard'))
+
+    except Exception as e:
+        flash(f'Error processing file: {str(e)}', 'error')
+        return redirect(url_for('dashboard'))
+
+
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('You have been logged out', 'info')
+    flash('You have been logged out successfully', 'success')
     return redirect(url_for('login'))
-
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -3,12 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Braille Analysis Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tilt.js/1.2.1/tilt.jquery.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Braille Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -35,102 +30,37 @@
             line-height: 1.6;
         }
 
-        .nav-container {
-            position: fixed;
-            top: 20px;
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .nav-icons {
-            display: flex;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 50px;
-            padding: 10px 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .nav-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 10px;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .nav-icon:hover {
-            transform: translateY(-5px);
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
-        }
-
-        .nav-icon::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.8rem;
-            opacity: 0;
-            transition: all 0.3s ease;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-
-        .nav-icon:hover::after {
-            opacity: 1;
-            bottom: -35px;
-        }
-
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            z-index: -1;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        }
-
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 100px 20px 40px;
+            padding: 20px;
         }
 
         .dashboard-header {
-            text-align: center;
-            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
         }
 
-        .dashboard-header h1 {
-            font-size: 3rem;
-            margin-bottom: 15px;
+        .dashboard-title {
+            font-size: 2rem;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
         }
 
-        .dashboard-header p {
-            font-size: 1.2rem;
-            opacity: 0.8;
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .username {
+            font-weight: 600;
         }
 
         .dashboard-grid {
@@ -139,672 +69,429 @@
             gap: 30px;
         }
 
-        .upload-section, .results-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            margin-bottom: 20px;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-        }
-
-        .section-title i {
-            margin-right: 15px;
-        }
-
-        .upload-area {
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 15px;
-            padding: 40px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
-        }
-
-        .upload-area:hover {
-            border-color: var(--primary);
-            background: rgba(108, 99, 255, 0.1);
-        }
-
-        .upload-area i {
-            font-size: 3rem;
-            color: var(--primary);
-            margin-bottom: 15px;
-        }
-
-        .upload-area p {
-            margin-bottom: 15px;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 10px 25px;
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: white;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(108, 99, 255, 0.4);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .file-info {
-            display: none;
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-        }
-
-        .file-info.show {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .file-details {
-            text-align: left;
-        }
-
-        .file-details p {
-            margin: 5px 0;
-        }
-
-        .file-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .progress-container {
-            margin-top: 20px;
-            display: none;
-        }
-
-        .progress-container.show {
-            display: block;
-        }
-
-        .progress-bar {
-            height: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-            margin-bottom: 10px;
-        }
-
-        .progress {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .results-content {
-            display: none;
-        }
-
-        .results-content.show {
-            display: block;
-        }
-
-        .result-item {
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .result-item:last-child {
-            border-bottom: none;
-        }
-
-        .result-label {
-            font-weight: 600;
-            color: var(--accent);
-            margin-bottom: 5px;
-        }
-
-        .result-value {
-            font-size: 1.2rem;
-        }
-
-        .chart-container {
-            margin-top: 30px;
-            height: 250px;
-        }
-
-        .braille-pattern {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            opacity: 0.05;
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="20" cy="20" r="3" fill="white"/><circle cx="20" cy="50" r="3" fill="white"/><circle cx="20" cy="80" r="3" fill="white"/><circle cx="50" cy="20" r="3" fill="white"/><circle cx="50" cy="50" r="3" fill="white"/><circle cx="50" cy="80" r="3" fill="white"/><circle cx="80" cy="20" r="3" fill="white"/><circle cx="80" cy="50" r="3" fill="white"/><circle cx="80" cy="80" r="3" fill="white"/></svg>');
-            z-index: -1;
-        }
-
-        @media (max-width: 1024px) {
+        @media (max-width: 768px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding-top: 80px;
-            }
-
-            .dashboard-header h1 {
-                font-size: 2rem;
-            }
-
-            .section-title {
-                font-size: 1.5rem;
-            }
-
-            .nav-icons {
-                padding: 8px 15px;
-            }
-
-            .nav-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-                margin: 0 5px;
-            }
-
-            .nav-icon::after {
-                font-size: 0.7rem;
-                bottom: -30px;
-            }
-
-            .nav-icon:hover::after {
-                bottom: -25px;
-            }
-
-            .file-info.show {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .file-actions {
-                margin-top: 10px;
-                width: 100%;
-                justify-content: flex-end;
-            }
-        }
-        .results-content {
-            display: none;
-            max-height: 500px;
-            overflow-y: auto;
-            padding-right: 10px;
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .result-item {
+        .card-title {
+            font-size: 1.5rem;
             margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--primary);
         }
 
-        .translation-box {
-            background: rgba(0, 0, 0, 0.2);
+        .file-upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
             border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            position: relative;
-        }
-
-        .translation-text {
-            font-family: 'Roboto Mono', monospace;
-            white-space: pre-wrap;
-            line-height: 1.8;
-        }
-
-        .audio-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .audio-btn {
-            background: rgba(108, 99, 255, 0.3);
-            border: none;
-            color: white;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 30px;
+            text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            margin-bottom: 20px;
         }
 
-        .audio-btn:hover {
-            background: rgba(108, 99, 255, 0.6);
-            transform: scale(1.1);
+        .file-upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(108, 99, 255, 0.05);
         }
 
-        .language-selector {
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-info {
             margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            display: none;
         }
 
-        .language-selector label {
-            display: block;
+        .file-info-item {
+            display: flex;
+            justify-content: space-between;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--accent);
         }
 
-        .language-selector select {
+        .file-info-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .file-info-value {
+            font-weight: 600;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn:disabled {
+            background: gray;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .language-select {
             width: 100%;
-            padding: 10px 15px;
+            padding: 12px;
             border-radius: 8px;
             background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
+            margin-bottom: 20px;
             font-family: 'Poppins', sans-serif;
         }
 
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
+        .result-area {
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            white-space: pre-wrap;
         }
 
-        .action-buttons .btn {
-            flex: 1;
-            text-align: center;
+        .result-title {
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: rgba(72, 187, 120, 0.2);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
+
+        .alert-error {
+            background: rgba(255, 101, 132, 0.2);
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            text-decoration: underline;
+        }
+
+        /* Progress bar styles */
+        .progress-container {
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 10px;
+            border-radius: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Text-to-speech button styles */
+        #listen-btn {
+            background: var(--accent);
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        #listen-btn:hover {
+            background: #3aa76d;
+            transform: translateY(-2px);
+        }
+
+        #listen-btn:disabled {
+            background: #6ee7b7;
+            cursor: not-allowed;
+            transform: none;
         }
     </style>
 </head>
 <body>
-    <div id="particles-js"></div>
-    <div class="braille-pattern"></div>
-
-    <!-- Navigation Icons -->
-    <div class="nav-container">
-        <div class="nav-icons">
-            <div class="nav-icon" data-tooltip="Home" onclick="window.location.href='/'">
-                <i class="fas fa-home"></i>
-            </div>
-            <div class="nav-icon" data-tooltip="Dashboard" onclick="window.location.href='/logout'">
-                <i class="fas fa-tachometer-alt"></i>
-            </div>
-        </div>
-    </div>
-
     <div class="container">
         <div class="dashboard-header">
-            <h1>Braille Analysis Dashboard</h1>
-            <p>Upload your Braille documents and translate to multiple languages</p>
+            <h1 class="dashboard-title">Braille Analysis Dashboard</h1>
+            <div class="user-info">
+                <span class="username">Welcome, {{ username }}</span>
+                <button class="logout-btn" onclick="window.location.href='/logout'">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
         </div>
 
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}" id="flash-message">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         <div class="dashboard-grid">
-            <div class="upload-section" data-tilt data-tilt-scale="1.02" data-tilt-glare data-tilt-max-glare="0.1">
-                <h2 class="section-title"><i class="fas fa-file-upload"></i> Upload Document</h2>
+            <!-- File Upload Section -->
+            <div class="dashboard-card">
+                <h2 class="card-title">Upload Braille Document</h2>
 
-                <div class="language-selector">
-                    <label for="languageSelect">Select Target Language:</label>
-                    <select id="languageSelect">
-                        <option value="en">English</option>
-                        <option value="es">Spanish</option>
-                        <option value="fr">French</option>
-                        <option value="de">German</option>
-                        <option value="it">Italian</option>
-                    </select>
-                </div>
-
-                <div class="upload-area" id="uploadArea">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Drag & drop your Braille document here</p>
-                    <p>or</p>
-                    <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx,.brf" style="display: none;">
-                    <button class="btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
-                </div>
-
-                <div class="file-info" id="fileInfo">
-                    <div class="file-details">
-                        <p><strong>File:</strong> <span id="fileName"></span></p>
-                        <p><strong>Size:</strong> <span id="fileSize"></span></p>
-                    </div>
-                    <div class="file-actions">
-                        <button class="btn btn-secondary" id="changeFileBtn">
-                            <i class="fas fa-exchange-alt"></i>
-                        </button>
-                        <button class="btn btn-secondary" id="removeFileBtn">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="action-buttons">
-                    <button class="btn" id="submitBtn" style="display: none;">Submit for Analysis</button>
-                </div>
-
-                <div class="progress-container" id="progressContainer">
-                    <p>Analyzing document...</p>
-                    <div class="progress-bar">
-                        <div class="progress" id="progressBar"></div>
-                    </div>
-                    <p id="progressText">0% complete</p>
-                </div>
-            </div>
-
-            <div class="results-section" data-tilt data-tilt-scale="1.02" data-tilt-glare data-tilt-max-glare="0.1">
-                <h2 class="section-title"><i class="fas fa-chart-bar"></i> Analysis Results</h2>
-
-                <div id="emptyResults">
-                    <p>Upload and analyze a Braille document to see results here.</p>
-                </div>
-
-                <div class="results-content" id="resultsContent">
-                    <div class="result-item">
-                        <div class="result-label">Document Name</div>
-                        <div class="result-value" id="resultFilename">-</div>
+                <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
+                    <div class="file-upload-area" id="drop-area">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <p>Drag & drop your file here or click to browse</p>
+                        <input type="file" name="file" id="file-input" class="file-input" accept=".pdf,.txt,.doc,.docx" required>
                     </div>
 
-                    <div class="result-item">
-                        <div class="result-label">Original Language</div>
-                        <div class="result-value" id="resultOriginalLanguage">-</div>
-                    </div>
-
-                    <div class="result-item">
-                        <div class="result-label">Target Language</div>
-                        <div class="result-value" id="resultTargetLanguage">-</div>
-                    </div>
-
-                    <div class="result-item">
-                        <div class="result-label">Word Count</div>
-                        <div class="result-value" id="resultWordCount">-</div>
-                    </div>
-
-                    <div class="result-item">
-                        <div class="result-label">Translation</div>
-                        <div class="translation-box">
-                            <div class="audio-controls">
-                                <button class="audio-btn" id="playBtn" title="Play Audio">
-                                    <i class="fas fa-play"></i>
-                                </button>
-                                <button class="audio-btn" id="pauseBtn" title="Pause Audio">
-                                    <i class="fas fa-pause"></i>
-                                </button>
-                                <button class="audio-btn" id="stopBtn" title="Stop Audio">
-                                    <i class="fas fa-stop"></i>
-                                </button>
-                            </div>
-                            <div class="translation-text" id="translatedText">
-                                No translation available yet.
-                            </div>
+                    <div class="file-info" id="file-info">
+                        <div class="file-info-item">
+                            <span class="file-info-label">File Name:</span>
+                            <span class="file-info-value" id="file-name">-</span>
+                        </div>
+                        <div class="file-info-item">
+                            <span class="file-info-label">File Size:</span>
+                            <span class="file-info-value" id="file-size">-</span>
+                        </div>
+                        <div class="file-info-item">
+                            <span class="file-info-label">File Type:</span>
+                            <span class="file-info-value" id="file-type">-</span>
                         </div>
                     </div>
 
-                    <div class="chart-container">
-                        <canvas id="patternChart"></canvas>
+                    <!-- Progress bar -->
+                    <div class="progress-container" id="progress-container">
+                        <div class="progress-bar" id="progress-bar"></div>
                     </div>
-                </div>
+
+                    <label for="language">Translation Language:</label>
+                    <select name="language" id="language" class="language-select">
+                        <option value="en" {% if language == 'en' %}selected{% endif %}>English</option>
+                        <option value="es" {% if language == 'es' %}selected{% endif %}>Spanish</option>
+                        <option value="fr" {% if language == 'fr' %}selected{% endif %}>French</option>
+                        <option value="de" {% if language == 'de' %}selected{% endif %}>German</option>
+                        <option value="it" {% if language == 'it' %}selected{% endif %}>Italian</option>
+                        <option value="pt" {% if language == 'pt' %}selected{% endif %}>Portuguese</option>
+                        <option value="ru" {% if language == 'ru' %}selected{% endif %}>Russian</option>
+                        <option value="zh" {% if language == 'zh' %}selected{% endif %}>Chinese</option>
+                        <option value="ja" {% if language == 'ja' %}selected{% endif %}>Japanese</option>
+                        <option value="ar" {% if language == 'ar' %}selected{% endif %}>Arabic</option>
+                        <!-- Indian Languages -->
+                        <option value="hi" {% if language == 'hi' %}selected{% endif %}>Hindi</option>
+                        <option value="bn" {% if language == 'bn' %}selected{% endif %}>Bengali</option>
+                        <option value="ta" {% if language == 'ta' %}selected{% endif %}>Tamil</option>
+                        <option value="te" {% if language == 'te' %}selected{% endif %}>Telugu</option>
+                        <option value="mr" {% if language == 'mr' %}selected{% endif %}>Marathi</option>
+                        <option value="ur" {% if language == 'ur' %}selected{% endif %}>Urdu</option>
+                        <option value="gu" {% if language == 'gu' %}selected{% endif %}>Gujarati</option>
+                        <option value="kn" {% if language == 'kn' %}selected{% endif %}>Kannada</option>
+                        <option value="ml" {% if language == 'ml' %}selected{% endif %}>Malayalam</option>
+                        <option value="pa" {% if language == 'pa' %}selected{% endif %}>Punjabi</option>
+                        <option value="or" {% if language == 'or' %}selected{% endif %}>Odia</option>
+                        <option value="as" {% if language == 'as' %}selected{% endif %}>Assamese</option>
+                        <!-- Other Languages -->
+                        <option value="nl" {% if language == 'nl' %}selected{% endif %}>Dutch</option>
+                        <option value="sv" {% if language == 'sv' %}selected{% endif %}>Swedish</option>
+                        <option value="pl" {% if language == 'pl' %}selected{% endif %}>Polish</option>
+                        <option value="tr" {% if language == 'tr' %}selected{% endif %}>Turkish</option>
+                        <option value="ko" {% if language == 'ko' %}selected{% endif %}>Korean</option>
+                    </select>
+                    <button type="submit" class="btn" id="submit-btn" disabled>Process Document</button>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div class="dashboard-card">
+                <h2 class="card-title">Analysis Results</h2>
+
+                {% if original_text %}
+                    <h3 class="result-title">Original Braille Content:</h3>
+                    <div class="result-area">
+                        {{ original_text }}
+                    </div>
+
+                    <h3 class="result-title">Translated Content ({{ language|upper }}):</h3>
+                    <div class="result-area" id="translated-text">
+                        {{ translated_text }}
+                    </div>
+
+                    <!-- Text-to-Speech Button -->
+                    <button id="listen-btn" class="btn" style="margin-top: 15px;">
+                        <i class="fas fa-volume-up"></i> Listen to Translation
+                    </button>
+                {% else %}
+                    <div class="result-area" style="display: flex; justify-content: center; align-items: center; color: rgba(255,255,255,0.5);">
+                        <p>Upload and process a Braille document to see results</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
 
     <script>
-        // Initialize particles.js
-        particlesJS("particles-js", {
-            "particles": {
-                "number": {
-                    "value": 80,
-                    "density": {
-                        "enable": true,
-                        "value_area": 800
-                    }
-                },
-                "color": {
-                    "value": "#6C63FF"
-                },
-                "shape": {
-                    "type": "circle",
-                    "stroke": {
-                        "width": 0,
-                        "color": "#000000"
-                    },
-                    "polygon": {
-                        "nb_sides": 5
-                    }
-                },
-                "opacity": {
-                    "value": 0.5,
-                    "random": false,
-                    "anim": {
-                        "enable": false,
-                        "speed": 1,
-                        "opacity_min": 0.1,
-                        "sync": false
-                    }
-                },
-                "size": {
-                    "value": 3,
-                    "random": true,
-                    "anim": {
-                        "enable": false,
-                        "speed": 40,
-                        "size_min": 0.1,
-                        "sync": false
-                    }
-                },
-                "line_linked": {
-                    "enable": true,
-                    "distance": 150,
-                    "color": "#6C63FF",
-                    "opacity": 0.4,
-                    "width": 1
-                },
-                "move": {
-                    "enable": true,
-                    "speed": 2,
-                    "direction": "none",
-                    "random": false,
-                    "straight": false,
-                    "out_mode": "out",
-                    "bounce": false,
-                    "attract": {
-                        "enable": false,
-                        "rotateX": 600,
-                        "rotateY": 1200
-                    }
-                }
-            },
-            "interactivity": {
-                "detect_on": "canvas",
-                "events": {
-                    "onhover": {
-                        "enable": true,
-                        "mode": "grab"
-                    },
-                    "onclick": {
-                        "enable": true,
-                        "mode": "push"
-                    },
-                    "resize": true
-                },
-                "modes": {
-                    "grab": {
-                        "distance": 140,
-                        "line_linked": {
-                            "opacity": 1
-                        }
-                    },
-                    "bubble": {
-                        "distance": 400,
-                        "size": 40,
-                        "duration": 2,
-                        "opacity": 8,
-                        "speed": 3
-                    },
-                    "repulse": {
-                        "distance": 200,
-                        "duration": 0.4
-                    },
-                    "push": {
-                        "particles_nb": 4
-                    },
-                    "remove": {
-                        "particles_nb": 2
-                    }
-                }
-            },
-            "retina_detect": true
+        // Show flash message and then fade out after 5 seconds
+        const flashMessage = document.getElementById('flash-message');
+        if (flashMessage) {
+            flashMessage.style.display = 'block';
+            setTimeout(() => {
+                flashMessage.style.opacity = '1';
+                setTimeout(() => {
+                    flashMessage.style.transition = 'opacity 1s ease';
+                    flashMessage.style.opacity = '0';
+                    setTimeout(() => {
+                        flashMessage.style.display = 'none';
+                    }, 1000);
+                }, 5000);
+            }, 100);
+        }
+
+        // File upload handling
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+        const fileType = document.getElementById('file-type');
+        const submitBtn = document.getElementById('submit-btn');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const uploadForm = document.getElementById('upload-form');
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
         });
 
-        // Initialize tilt.js
-        $(document).ready(function() {
-            $('.upload-section').tilt({
-                glare: true,
-                maxGlare: 0.1,
-                scale: 1.02
-            });
-            $('.results-section').tilt({
-                glare: true,
-                maxGlare: 0.1,
-                scale: 1.02
-            });
-        });
-
-        // DOM Elements
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const fileInfo = document.getElementById('fileInfo');
-        const fileName = document.getElementById('fileName');
-        const fileSize = document.getElementById('fileSize');
-        const submitBtn = document.getElementById('submitBtn');
-        const changeFileBtn = document.getElementById('changeFileBtn');
-        const removeFileBtn = document.getElementById('removeFileBtn');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        const emptyResults = document.getElementById('emptyResults');
-        const resultsContent = document.getElementById('resultsContent');
-        const languageSelect = document.getElementById('languageSelect');
-
-        // Result elements
-        const resultFilename = document.getElementById('resultFilename');
-        const resultOriginalLanguage = document.getElementById('resultOriginalLanguage');
-        const resultTargetLanguage = document.getElementById('resultTargetLanguage');
-        const resultWordCount = document.getElementById('resultWordCount');
-        const translatedText = document.getElementById('translatedText');
-
-        // Audio elements
-        const playBtn = document.getElementById('playBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        let speechSynthesis = window.speechSynthesis;
-        let speechUtterance = null;
-
-        // Chart variable
-        let patternChart;
-
-        // Language mapping
-        const languageNames = {
-            'en': 'English',
-            'es': 'Spanish',
-            'fr': 'French',
-            'de': 'German',
-            'it': 'Italian'
-        };
-
-        // File handling
-        let selectedFile = null;
-
-        // Event listeners
-        uploadArea.addEventListener('click', () => fileInput.click());
-        uploadArea.addEventListener('dragover', (e) => {
+        function preventDefaults(e) {
             e.preventDefault();
-            uploadArea.style.borderColor = 'var(--primary)';
-            uploadArea.style.background = 'rgba(108, 99, 255, 0.1)';
-        });
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-            uploadArea.style.background = 'transparent';
-        });
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-            uploadArea.style.background = 'transparent';
+            e.stopPropagation();
+        }
 
-            if (e.dataTransfer.files.length) {
-                handleFileSelection(e.dataTransfer.files[0]);
+        // Highlight drop area when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropArea.style.borderColor = '#6C63FF';
+            dropArea.style.backgroundColor = 'rgba(108, 99, 255, 0.1)';
+        }
+
+        function unhighlight() {
+            dropArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            dropArea.style.backgroundColor = 'transparent';
+        }
+
+        // Handle dropped files
+        dropArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) {
+                fileInput.files = files;
+                handleFiles(files);
+            }
+        }
+
+        // Handle selected files
+        dropArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', function() {
+            if (this.files.length) {
+                handleFiles(this.files);
             }
         });
 
-        fileInput.addEventListener('change', () => {
-            if (fileInput.files.length) {
-                handleFileSelection(fileInput.files[0]);
+        function handleFiles(files) {
+            const file = files[0];
+            const validExtensions = ['.pdf', '.txt', '.doc', '.docx'];
+            const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+
+            // Check if file is one of the supported types
+            if (!validExtensions.includes(fileExtension)) {
+                showError('Please upload a supported file type (PDF, TXT, DOC, DOCX)');
+                return;
             }
-        });
 
-        changeFileBtn.addEventListener('click', () => {
-            fileInput.click();
-        });
-
-        removeFileBtn.addEventListener('click', resetUpload);
-
-        submitBtn.addEventListener('click', () => {
-            if (selectedFile) {
-                uploadFile(selectedFile);
+            // Check file size (e.g., limit to 10MB)
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                showError('File size exceeds 10MB limit');
+                return;
             }
-        });
-
-        // Functions
-        function handleFileSelection(file) {
-            selectedFile = file;
 
             // Display file info
             fileName.textContent = file.name;
             fileSize.textContent = formatFileSize(file.size);
-            fileInfo.classList.add('show');
-            submitBtn.style.display = 'block';
+            fileType.textContent = file.type || getFileTypeFromExtension(fileExtension);
 
-            // Hide upload area
-            uploadArea.style.display = 'none';
+            fileInfo.style.display = 'block';
+            submitBtn.disabled = false;
         }
 
-        function resetUpload() {
-            selectedFile = null;
-            fileInput.value = '';
-
-            // Hide file info and show upload area
-            fileInfo.classList.remove('show');
-            submitBtn.style.display = 'none';
-            uploadArea.style.display = 'block';
-
-            // Reset progress if visible
-            progressContainer.classList.remove('show');
+        function getFileTypeFromExtension(ext) {
+            const types = {
+                '.pdf': 'PDF Document',
+                '.txt': 'Text File',
+                '.doc': 'Word Document',
+                '.docx': 'Word Document'
+            };
+            return types[ext] || 'Unknown file type';
         }
 
         function formatFileSize(bytes) {
@@ -815,159 +502,134 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        function updateProgress(percent) {
-            progressBar.style.width = percent + '%';
-            progressText.textContent = Math.round(percent) + '% complete';
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-error';
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+
+            // Insert after the file upload area
+            dropArea.parentNode.insertBefore(errorDiv, dropArea.nextSibling);
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+                errorDiv.style.transition = 'opacity 1s ease';
+                errorDiv.style.opacity = '0';
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 1000);
+            }, 5000);
         }
 
-        function uploadFile(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('language', languageSelect.value);
+        // Form submission with progress tracking
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
 
-            // Show progress
-            submitBtn.style.display = 'none';
-            progressContainer.classList.add('show');
+            const formData = new FormData(this);
+            const xhr = new XMLHttpRequest();
 
-            // Simulate progress (in real app, you'd use actual upload progress)
-            let progress = 0;
-            const progressInterval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress > 90) progress = 90;
-                updateProgress(progress);
-            }, 300);
+            // Show progress bar
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
 
-            // Send to server
-            fetch('/dashboard', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                clearInterval(progressInterval);
-                updateProgress(100);
+            // Disable submit button during upload
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
 
-                if (data.error) {
-                    alert('Error: ' + data.error);
-                    resetUpload();
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                if (xhr.status === 200) {
+                    // Handle successful response
+                    window.location.reload();
                 } else {
-                    // Show results
-                    setTimeout(() => {
-                        displayResults(data);
-                        progressContainer.classList.remove('show');
-                    }, 500);
-                }
-            })
-            .catch(error => {
-                clearInterval(progressInterval);
-                alert('Upload failed: ' + error.message);
-                resetUpload();
-            });
-        }
-
-        function displayResults(data) {
-            emptyResults.style.display = 'none';
-            resultsContent.classList.add('show');
-
-            // Update result fields
-            resultFilename.textContent = data.filename || 'Unknown';
-            resultOriginalLanguage.textContent = languageNames[data.original_language] || 'Unknown';
-            resultTargetLanguage.textContent = languageNames[data.target_language] || 'Unknown';
-            resultWordCount.textContent = data.word_count ? data.word_count.toLocaleString() : '0';
-
-            // Update translation text
-            if (data.translated_text) {
-                translatedText.textContent = data.translated_text;
-
-                // Initialize speech synthesis if available
-                if (speechSynthesis) {
-                    speechUtterance = new SpeechSynthesisUtterance(data.translated_text);
-                    speechUtterance.lang = data.target_language || 'en-US';
-                    speechUtterance.rate = 0.9;
-                    speechUtterance.pitch = 1;
-                }
-            }
-
-            // Update chart if data exists
-            if (data.patterns) {
-                updateChart(data.patterns);
-            }
-        }
-
-        function updateChart(patterns) {
-            const ctx = document.getElementById('patternChart').getContext('2d');
-
-            if (patternChart) {
-                patternChart.destroy();
-            }
-
-            const labels = Object.keys(patterns);
-            const data = Object.values(patterns);
-
-            patternChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Pattern Frequency',
-                        data: data,
-                        backgroundColor: 'rgba(108, 99, 255, 0.6)',
-                        borderColor: 'rgba(108, 99, 255, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: 'rgba(255, 255, 255, 0.7)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: 'rgba(255, 255, 255, 0.7)'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: 'rgba(255, 255, 255, 0.7)'
-                            }
-                        }
-                    }
+                    // Handle error
+                    showError('Error processing file: ' + xhr.responseText);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Process Document';
+                    progressContainer.style.display = 'none';
                 }
             });
+
+            xhr.addEventListener('error', function() {
+                showError('Error uploading file. Please try again.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Process Document';
+                progressContainer.style.display = 'none';
+            });
+
+            xhr.open('POST', '/upload', true);
+            xhr.send(formData);
+        });
+
+        // Text-to-Speech Functionality
+        const listenBtn = document.getElementById('listen-btn');
+        const translatedText = document.getElementById('translated-text');
+
+        if (listenBtn) {
+            listenBtn.addEventListener('click', speakTranslatedText);
         }
 
-        // Audio control functions
-        playBtn.addEventListener('click', () => {
-            if (speechSynthesis && speechUtterance) {
-                speechSynthesis.cancel(); // Cancel any ongoing speech
-                speechSynthesis.speak(speechUtterance);
+        function speakTranslatedText() {
+            if (!translatedText || !translatedText.textContent.trim()) {
+                showError('No translated text available to read.');
+                return;
             }
-        });
 
-        pauseBtn.addEventListener('click', () => {
-            if (speechSynthesis) {
-                speechSynthesis.pause();
-            }
-        });
+            // Get selected language from dropdown
+            const langCode = document.getElementById('language').value;
 
-        stopBtn.addEventListener('click', () => {
-            if (speechSynthesis) {
-                speechSynthesis.cancel();
+            // Check if browser supports speech synthesis
+            if (!window.speechSynthesis) {
+                showError('Text-to-speech is not supported in your browser.');
+                return;
             }
-        });
+
+            const utterance = new SpeechSynthesisUtterance(translatedText.textContent);
+            utterance.lang = langCode; // Set language code
+            utterance.rate = 0.9; // Slightly slower than default
+
+            // Try to find a voice matching the language
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(voice =>
+                voice.lang.startsWith(langCode) ||
+                voice.lang.replace(/-.*/, '') === langCode
+            );
+
+            if (preferredVoice) {
+                utterance.voice = preferredVoice;
+            }
+
+            // Visual feedback while speaking
+            listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> Speaking...';
+            listenBtn.disabled = true;
+
+            utterance.onend = function() {
+                listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen to Translation';
+                listenBtn.disabled = false;
+            };
+
+            utterance.onerror = function(event) {
+                console.error('SpeechSynthesis error:', event);
+                showError('Error reading text. Please try again.');
+                listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen to Translation';
+                listenBtn.disabled = false;
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Load voices when they become available
+        if (window.speechSynthesis) {
+            window.speechSynthesis.onvoiceschanged = function() {
+                // Voices are now loaded
+            };
+        }
     </script>
 </body>
 </html>

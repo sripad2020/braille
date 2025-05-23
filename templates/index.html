@@ -34,7 +34,7 @@
             line-height: 1.6;
         }
 
-        /* New Navigation Styles */
+        /* Navigation Styles */
         .nav-container {
             position: fixed;
             top: 20px;
@@ -111,17 +111,17 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
+            padding: 0 15px;
         }
 
         header {
-            padding: 100px 0 40px;
+            padding: 80px 0 30px;
             text-align: center;
             position: relative;
         }
 
         h1 {
-            font-size: 4rem;
+            font-size: clamp(2.5rem, 8vw, 4rem);
             margin-bottom: 20px;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
@@ -131,7 +131,7 @@
         }
 
         .subtitle {
-            font-size: 1.5rem;
+            font-size: clamp(1rem, 4vw, 1.5rem);
             color: var(--light);
             opacity: 0.8;
             font-family: 'Roboto Mono', monospace;
@@ -141,29 +141,31 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 60px 0;
+            padding: 40px 0;
+            flex-wrap: wrap;
         }
 
         .hero-text {
             flex: 1;
-            padding-right: 40px;
+            padding-right: 20px;
+            min-width: 100%;
         }
 
         .hero h2 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
+            margin-bottom: 15px;
             color: var(--primary);
         }
 
         .hero p {
-            font-size: 1.1rem;
-            margin-bottom: 30px;
+            font-size: clamp(0.9rem, 3.5vw, 1.1rem);
+            margin-bottom: 20px;
             color: var(--light);
         }
 
         .btn {
             display: inline-block;
-            padding: 12px 30px;
+            padding: 10px 25px;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             color: white;
             border-radius: 50px;
@@ -180,36 +182,37 @@
 
         .canvas-container {
             flex: 1;
-            height: 400px;
+            height: 300px;
             position: relative;
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             transform-style: preserve-3d;
+            width: 100%;
         }
 
         .features {
-            padding: 80px 0;
+            padding: 60px 0;
             text-align: center;
         }
 
         .features h2 {
-            font-size: 2.5rem;
-            margin-bottom: 60px;
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
+            margin-bottom: 40px;
             color: var(--primary);
         }
 
         .feature-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
         }
 
         .feature-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 40px 30px;
+            padding: 30px 20px;
             transition: all 0.5s ease;
             transform-style: preserve-3d;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
@@ -223,21 +226,21 @@
         }
 
         .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
             color: var(--accent);
         }
 
         .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            margin-bottom: 10px;
             color: white;
         }
 
         .stats {
-            padding: 80px 0;
+            padding: 60px 0;
             background: rgba(0, 0, 0, 0.2);
-            margin: 80px 0;
+            margin: 60px 0;
             position: relative;
             overflow: hidden;
         }
@@ -255,8 +258,8 @@
 
         .stat-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 30px;
             text-align: center;
         }
 
@@ -266,7 +269,7 @@
         }
 
         .stat-number {
-            font-size: 3.5rem;
+            font-size: clamp(2rem, 6vw, 3.5rem);
             font-weight: 700;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
@@ -276,16 +279,16 @@
         }
 
         .stat-label {
-            font-size: 1.2rem;
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
             color: rgba(255, 255, 255, 0.8);
             font-family: 'Roboto Mono', monospace;
         }
 
         footer {
-            padding: 40px 0;
+            padding: 30px 0;
             text-align: center;
             background: rgba(0, 0, 0, 0.3);
-            margin-top: 80px;
+            margin-top: 60px;
         }
 
         .braille-pattern {
@@ -330,34 +333,37 @@
             transform: scaleX(1);
         }
 
-        /* Responsive adjustments */
+        /* Responsive Adjustments */
         @media (max-width: 768px) {
             .hero {
                 flex-direction: column;
+                align-items: center;
             }
 
             .hero-text {
                 padding-right: 0;
-                margin-bottom: 40px;
+                margin-bottom: 30px;
+                text-align: center;
             }
 
-            h1 {
-                font-size: 2.5rem;
-            }
-
-            .subtitle {
-                font-size: 1.1rem;
+            .canvas-container {
+                height: 200px;
+                width: 100%;
+                max-width: 400px;
+                margin: 0 auto;
             }
 
             .nav-icons {
-                padding: 8px 15px;
+                padding: 8px 10px;
+                justify-content: center;
             }
 
             .nav-icon {
                 width: 40px;
                 height: 40px;
                 font-size: 1.2rem;
-                margin: 0 5px;
+                margin: 0 8px;
+                touch-action: manipulation;
             }
 
             .nav-icon::after {
@@ -368,6 +374,89 @@
             .nav-icon:hover::after {
                 bottom: -25px;
             }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .feature-card {
+                padding: 20px 15px;
+            }
+
+            .stat-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .btn {
+                padding: 8px 20px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 60px 0 20px;
+            }
+
+            h1 {
+                font-size: clamp(2rem, 7vw, 3rem);
+            }
+
+            .subtitle {
+                font-size: clamp(0.9rem, 3.5vw, 1.2rem);
+            }
+
+            .hero {
+                padding: 20px 0;
+            }
+
+            .hero-text {
+                margin-bottom: 20px;
+            }
+
+            .canvas-container {
+                height: 150px;
+                max-width: 100%;
+            }
+
+            .features {
+                padding: 40px 0;
+            }
+
+            .features h2 {
+                font-size: clamp(1.5rem, 5vw, 2rem);
+            }
+
+            .stats {
+                padding: 40px 0;
+                margin: 40px 0;
+            }
+
+            .stat-number {
+                font-size: clamp(1.8rem, 5vw, 2.5rem);
+            }
+
+            .stat-label {
+                font-size: clamp(0.8rem, 2.5vw, 1rem);
+            }
+
+            .nav-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+                margin: 0 5px;
+            }
+
+            .nav-icon::after {
+                font-size: 0.6rem;
+                bottom: -25px;
+            }
+
+            .nav-icon:hover::after {
+                bottom: -20px;
+            }
         }
     </style>
 </head>
@@ -377,19 +466,18 @@
 
     <!-- Navigation Icons -->
     <div class="nav-container">
-    <div class="nav-icons">
-        <div class="nav-icon" data-tooltip="Home" onclick="window.location.href='/'">
-            <i class="fas fa-home"></i>
-        </div>
-        <div class="nav-icon" data-tooltip="Login" onclick="window.location.href='/login'">
-            <i class="fas fa-sign-in-alt"></i> <!-- Login Icon -->
-        </div>
-        <div class="nav-icon" data-tooltip="Signup" onclick="window.location.href='/signup'">
-            <i class="fas fa-user-plus"></i> <!-- Signup Icon -->
+        <div class="nav-icons">
+            <div class="nav-icon" data-tooltip="Home" onclick="window.location.href='/'">
+                <i class="fas fa-home"></i>
+            </div>
+            <div class="nav-icon" data-tooltip="Login" onclick="window.location.href='/login'">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <div class="nav-icon" data-tooltip="Signup" onclick="window.location.href='/signup'">
+                <i class="fas fa-user-plus"></i>
+            </div>
         </div>
     </div>
-</div>
-
 
     <div class="container">
         <header>
@@ -429,7 +517,34 @@
                     </div>
                 </div>
             </div>
-        </section>`
+        </section>
+
+        <section class="stats">
+            <div class="container">
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-number" id="stat1">0</div>
+                        <div class="stat-label">Braille Characters Analyzed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="stat2">0</div>
+                        <div class="stat-label">Books Processed</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="stat3">0</div>
+                        <div class="stat-label">Languages Covered</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="stat4">0</div>
+                        <div class="stat-label">Countries Analyzed</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>© 2025 Braille Literature Analysis. All rights reserved.</p>
+        </footer>
     </div>
 
     <script>
@@ -437,7 +552,7 @@
         particlesJS("particles-js", {
             "particles": {
                 "number": {
-                    "value": 80,
+                    "value": window.innerWidth < 768 ? 50 : 80,
                     "density": {
                         "enable": true,
                         "value_area": 800
@@ -467,7 +582,7 @@
                     }
                 },
                 "size": {
-                    "value": 3,
+                    "value": window.innerWidth < 768 ? 2 : 3,
                     "random": true,
                     "anim": {
                         "enable": false,
@@ -485,7 +600,7 @@
                 },
                 "move": {
                     "enable": true,
-                    "speed": 2,
+                    "speed": window.innerWidth < 768 ? 1 : 2,
                     "direction": "none",
                     "random": false,
                     "straight": false,
@@ -502,7 +617,7 @@
                 "detect_on": "canvas",
                 "events": {
                     "onhover": {
-                        "enable": true,
+                        "enable": window.innerWidth >= 768,
                         "mode": "grab"
                     },
                     "onclick": {
@@ -542,8 +657,8 @@
 
         // Three.js Braille Visualization
         const brailleContainer = document.getElementById('braille-canvas');
-        const width = brailleContainer.clientWidth;
-        const height = brailleContainer.clientHeight;
+        let width = brailleContainer.clientWidth;
+        let height = brailleContainer.clientHeight;
 
         // Scene setup
         const scene = new THREE.Scene();
@@ -551,11 +666,12 @@
 
         // Camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        camera.position.z = 30;
+        camera.position.z = window.innerWidth < 768 ? 20 : 30;
 
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         brailleContainer.appendChild(renderer.domElement);
 
         // Braille dots
@@ -569,8 +685,8 @@
 
         // Create a grid of Braille dots
         const dots = [];
-        const gridSize = 5;
-        const spacing = 2.5;
+        const gridSize = window.innerWidth < 768 ? 4 : 5;
+        const spacing = window.innerWidth < 768 ? 2 : 2.5;
 
         for (let x = 0; x < gridSize; x++) {
             for (let y = 0; y < gridSize; y++) {
@@ -616,7 +732,7 @@
             });
 
             // Rotate scene slightly
-            scene.rotation.y += 0.001;
+            scene.rotation.y += window.innerWidth < 768 ? 0.0005 : 0.001;
 
             renderer.render(scene, camera);
         }
@@ -625,27 +741,31 @@
 
         // Handle window resize
         window.addEventListener('resize', () => {
-            const newWidth = brailleContainer.clientWidth;
-            const newHeight = brailleContainer.clientHeight;
+            width = brailleContainer.clientWidth;
+            height = brailleContainer.clientHeight;
 
-            camera.aspect = newWidth / newHeight;
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
 
-            renderer.setSize(newWidth, newHeight);
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         });
 
         // Tilt.js initialization
         $(document).ready(function() {
-            $('.feature-card').tilt({
-                glare: true,
-                maxGlare: 0.2,
-                scale: 1.05
-            });
+            if (window.innerWidth >= 768) {
+                $('.feature-card').tilt({
+                    glare: true,
+                    maxGlare: 0.2,
+                    scale: 1.05
+                });
+            }
         });
 
         // Animated statistics
         function animateValue(id, start, end, duration) {
             const obj = document.getElementById(id);
+            if (!obj) return;
             let startTimestamp = null;
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;

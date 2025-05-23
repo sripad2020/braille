@@ -70,6 +70,7 @@
             transition: all 0.5s ease;
             position: relative;
             overflow: hidden;
+            margin: 20px;
         }
 
         .signup-container:hover {
@@ -83,7 +84,7 @@
         }
 
         .signup-header h1 {
-            font-size: 2.5rem;
+            font-size: clamp(2rem, 6vw, 2.5rem);
             margin-bottom: 10px;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
@@ -93,23 +94,24 @@
         }
 
         .signup-header p {
+            font-size: clamp(0.9rem, 3.5vw, 1rem);
             color: rgba(255, 255, 255, 0.7);
             font-family: 'Roboto Mono', monospace;
         }
 
         .input-group {
             position: relative;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .input-group input {
             width: 100%;
-            padding: 15px 20px 15px 50px;
+            padding: 12px 20px 12px 45px;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50px;
             color: white;
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 3vw, 1rem);
             transition: all 0.3s ease;
         }
 
@@ -121,10 +123,11 @@
 
         .input-group i {
             position: absolute;
-            left: 20px;
+            left: 15px;
             top: 50%;
             transform: translateY(-50%);
             color: rgba(255, 255, 255, 0.7);
+            font-size: clamp(0.9rem, 3vw, 1rem);
             transition: all 0.3s ease;
         }
 
@@ -150,17 +153,18 @@
         .btn {
             display: inline-block;
             width: 100%;
-            padding: 15px;
+            padding: 12px;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             color: white;
             border: none;
             border-radius: 50px;
-            font-size: 1rem;
+            font-size: clamp(0.9rem, 3vw, 1rem);
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
             margin: 20px 0;
+            touch-action: manipulation;
         }
 
         .btn:hover {
@@ -172,7 +176,7 @@
             text-align: center;
             margin-top: 20px;
             color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
         }
 
         .signup-footer a {
@@ -190,7 +194,7 @@
             align-items: center;
             margin: 20px 0;
             color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
         }
 
         .terms input {
@@ -206,7 +210,6 @@
             text-decoration: underline;
         }
 
-        /* Three.js dots floating in background */
         .three-dots {
             position: absolute;
             top: 0;
@@ -217,23 +220,101 @@
             z-index: -1;
         }
 
-        /* Error message styling */
         .error-message {
             color: var(--secondary);
-            font-size: 0.8rem;
+            font-size: clamp(0.7rem, 2vw, 0.8rem);
             margin-top: 5px;
             display: none;
         }
 
         /* Responsive adjustments */
-        @media (max-width: 576px) {
+        @media (max-width: 768px) {
             .signup-container {
                 padding: 30px 20px;
-                margin: 20px;
+                margin: 15px;
+                max-width: 90%;
             }
 
             .signup-header h1 {
-                font-size: 2rem;
+                font-size: clamp(1.8rem, 5vw, 2rem);
+            }
+
+            .signup-header p {
+                font-size: clamp(0.8rem, 3vw, 0.9rem);
+            }
+
+            .input-group input {
+                padding: 10px 15px 10px 40px;
+                font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            }
+
+            .input-group i {
+                left: 12px;
+                font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            }
+
+            .btn {
+                padding: 10px;
+                font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            }
+
+            .terms {
+                font-size: clamp(0.7rem, 2vw, 0.8rem);
+            }
+
+            .signup-footer {
+                font-size: clamp(0.7rem, 2vw, 0.8rem);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .signup-container {
+                padding: 20px 15px;
+                margin: 10px;
+                max-width: 95%;
+            }
+
+            .signup-header {
+                margin-bottom: 30px;
+            }
+
+            .signup-header h1 {
+                font-size: clamp(1.5rem, 4.5vw, 1.8rem);
+            }
+
+            .signup-header p {
+                font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+            }
+
+            .input-group {
+                margin-bottom: 15px;
+            }
+
+            .input-group input {
+                padding: 8px 15px 8px 35px;
+                font-size: clamp(0.7rem, 2vw, 0.8rem);
+            }
+
+            .input-group i {
+                left: 10px;
+                font-size: clamp(0.7rem, 2vw, 0.8rem);
+            }
+
+            .btn {
+                padding: 8px;
+                font-size: clamp(0.7rem, 2vw, 0.8rem);
+            }
+
+            .terms {
+                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+            }
+
+            .signup-footer {
+                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+            }
+
+            .error-message {
+                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
             }
         }
     </style>
@@ -251,19 +332,19 @@
 
         <form id="signupForm" action="/signup" method="POST">
             <div class="input-group">
-                <input type="text" name="username" placeholder="Username" required>
+                <input type="text" name="username" placeholder="Username" required aria-label="Username">
                 <i class="fas fa-user"></i>
                 <div class="error-message" id="username-error"></div>
             </div>
 
             <div class="input-group">
-                <input type="email" name="email" placeholder="Email Address" required>
+                <input type="email" name="email" placeholder="Email Address" required aria-label="Email Address">
                 <i class="fas fa-envelope"></i>
                 <div class="error-message" id="email-error"></div>
             </div>
 
             <div class="input-group">
-                <input type="password" name="password" id="password" placeholder="Password" required>
+                <input type="password" name="password" id="password" placeholder="Password" required aria-label="Password">
                 <i class="fas fa-lock"></i>
                 <div class="password-strength">
                     <div class="strength-meter" id="strength-meter"></div>
@@ -272,13 +353,13 @@
             </div>
 
             <div class="input-group">
-                <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+                <input type="password" name="confirm_password" placeholder="Confirm Password" required aria-label="Confirm Password">
                 <i class="fas fa-lock"></i>
                 <div class="error-message" id="confirm-error"></div>
             </div>
 
             <div class="terms">
-                <input type="checkbox" id="terms" name="terms" required>
+                <input type="checkbox" id="terms" name="terms" required aria-label="Agree to Terms and Privacy Policy">
                 <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
             </div>
 
@@ -295,7 +376,7 @@
         particlesJS("particles-js", {
             "particles": {
                 "number": {
-                    "value": 60,
+                    "value": window.innerWidth < 768 ? 40 : 60,
                     "density": {
                         "enable": true,
                         "value_area": 800
@@ -325,7 +406,7 @@
                     }
                 },
                 "size": {
-                    "value": 3,
+                    "value": window.innerWidth < 768 ? 2 : 3,
                     "random": true,
                     "anim": {
                         "enable": false,
@@ -343,7 +424,7 @@
                 },
                 "move": {
                     "enable": true,
-                    "speed": 1.5,
+                    "speed": window.innerWidth < 768 ? 1 : 1.5,
                     "direction": "none",
                     "random": false,
                     "straight": false,
@@ -360,7 +441,7 @@
                 "detect_on": "canvas",
                 "events": {
                     "onhover": {
-                        "enable": true,
+                        "enable": window.innerWidth >= 768,
                         "mode": "grab"
                     },
                     "onclick": {
@@ -400,19 +481,20 @@
 
         // Three.js floating dots for signup form background
         const dotsContainer = document.getElementById('three-dots');
-        const width = dotsContainer.clientWidth;
-        const height = dotsContainer.clientHeight;
+        let width = dotsContainer.clientWidth;
+        let height = dotsContainer.clientHeight;
 
         // Scene setup
         const scene = new THREE.Scene();
 
         // Camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        camera.position.z = 30;
+        camera.position.z = window.innerWidth < 768 ? 20 : 30;
 
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(width, height);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         dotsContainer.appendChild(renderer.domElement);
 
         // Braille dots
@@ -428,13 +510,13 @@
 
         // Create floating dots
         const dots = [];
-        const dotCount = 30;
+        const dotCount = window.innerWidth < 768 ? 20 : 30;
 
         for (let i = 0; i < dotCount; i++) {
             const dot = new THREE.Mesh(dotGeometry, dotMaterial);
 
             // Random position within a sphere
-            const radius = 15;
+            const radius = window.innerWidth < 768 ? 10 : 15;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.random() * Math.PI;
             const x = radius * Math.sin(phi) * Math.cos(theta);
@@ -487,7 +569,7 @@
             });
 
             // Rotate scene slightly
-            scene.rotation.y += 0.0005;
+            scene.rotation.y += window.innerWidth < 768 ? 0.0003 : 0.0005;
 
             renderer.render(scene, camera);
         }
@@ -496,22 +578,25 @@
 
         // Handle window resize
         window.addEventListener('resize', () => {
-            const newWidth = dotsContainer.clientWidth;
-            const newHeight = dotsContainer.clientHeight;
+            width = dotsContainer.clientWidth;
+            height = dotsContainer.clientHeight;
 
-            camera.aspect = newWidth / newHeight;
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
 
-            renderer.setSize(newWidth, newHeight);
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         });
 
         // Tilt.js initialization for signup container
         $(document).ready(function() {
-            $('.signup-container').tilt({
-                glare: true,
-                maxGlare: 0.2,
-                maxTilt: 5
-            });
+            if (window.innerWidth >= 768) {
+                $('.signup-container').tilt({
+                    glare: true,
+                    maxGlare: 0.2,
+                    maxTilt: 5
+                });
+            }
         });
 
         // Password strength meter

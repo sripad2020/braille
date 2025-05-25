@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Braille 6-Dot Image Decoder</title>
+</head>
+<body>
+    <h1>Upload Braille Image (6-dot)</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" required>
+        <input type="submit" value="Decode">
+    </form>
+    {% if decoded_text %}
+    <h2>Decoded Text:</h2>
+    <p>{{ decoded_text }}</p>
+    {% endif %}
+</body>
+</html>

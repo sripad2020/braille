@@ -201,6 +201,23 @@
             font-size: clamp(0.9rem, 3vw, 1rem);
         }
 
+        .tone-analysis {
+            margin-top: clamp(15px, 3vw, 20px);
+        }
+
+        .tone-analysis ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .tone-analysis li {
+            padding: clamp(8px, 1.5vw, 10px);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+        }
+
         .alert {
             padding: clamp(10px, 2vw, 15px);
             border-radius: 8px;
@@ -249,18 +266,18 @@
             transition: width 0.3s ease;
         }
 
-        #listen-btn {
+        #listen-btn, #tone-btn {
             background: var(--accent);
             margin-top: clamp(10px, 2vw, 15px);
             transition: all 0.3s ease;
         }
 
-        #listen-btn:hover {
+        #listen-btn:hover, #tone-btn:hover {
             background: #3aa76d;
             transform: translateY(-2px);
         }
 
-        #listen-btn:disabled {
+        #listen-btn:disabled, #tone-btn:disabled {
             background: #6ee7b7;
             cursor: not-allowed;
             transform: none;
@@ -359,6 +376,10 @@
                 margin-bottom: clamp(10px, 2vw, 15px);
                 font-size: clamp(0.6rem, 1.8vw, 0.7rem);
             }
+
+            .tone-analysis li {
+                font-size: clamp(0.7rem, 2vw, 0.8rem);
+            }
         }
 
         @media (max-width: 480px) {
@@ -452,7 +473,11 @@
                 font-size: clamp(0.5rem, 1.5vw, 0.6rem);
             }
 
-            #listen-btn {
+            .tone-analysis li {
+                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+            }
+
+            #listen-btn, #tone-btn {
                 margin-top: clamp(8px, 1.5vw, 10px);
             }
         }
@@ -484,15 +509,15 @@
         <div class="dashboard-grid">
             <!-- File Upload Section -->
             <div class="dashboard-card">
-                <h2 class="card-title">Upload Braille Document</h2>
+                <h2 class="card-title">Upload Braille Document or Image</h2>
 
                 <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
                     <div class="file-upload-area" id="drop-area" role="button" aria-label="Drag and drop or click to upload a file">
                         <div class="upload-icon">
                             <i class="fas fa-cloud-upload-alt"></i>
                         </div>
-                        <p>Drag & drop your file here or click to browse</p>
-                        <input type="file" name="file" id="file-input" class="file-input" accept=".pdf,.txt,.doc,.docx" required aria-label="File input for uploading documents">
+                        <p>Drag & drop your file or image here or click to browse (PDF, TXT, DOC, DOCX, PNG, JPG, JPEG)</p>
+                        <input type="file" name="file" id="file-input" class="file-input" accept=".pdf,.txt,.doc,.docx,.png,.jpg,.jpeg" required aria-label="File input for uploading documents or images">
                     </div>
 
                     <div class="file-info" id="file-info">
@@ -544,7 +569,7 @@
                         <option value="tr" {% if language == 'tr' %}selected{% endif %}>Turkish</option>
                         <option value="ko" {% if language == 'ko' %}selected{% endif %}>Korean</option>
                     </select>
-                    <button type="submit" class="btn" id="submit-btn" disabled aria-label="Process uploaded document">Process Document</button>
+                    <button type="submit" class="btn" id="submit-btn" disabled aria-label="Process uploaded document or image">Process Document/Image</button>
                 </form>
             </div>
 
@@ -566,9 +591,23 @@
                     <button id="listen-btn" class="btn" aria-label="Listen to translated text">
                         <i class="fas fa-volume-up"></i> Listen to Translation
                     </button>
+                    <button id="tone-btn" class="btn" onclick="window.location.href='/tone_analysis'" aria-label="Analyze tone of translated text">
+                        <i class="fas fa-chart-line"></i> Analyze Tone
+                    </button>
+
+                    {% if tone_points %}
+                        <div class="tone-analysis">
+                            <h3 class="result-title">Tone Analysis:</h3>
+                            <ul>
+                                {% for point in tone_points %}
+                                    <li>{{ point }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
                 {% else %}
                     <div class="result-area" style="display: flex; justify-content: center; align-items: center; color: rgba(255,255,255,0.5);">
-                        <p>Upload and process a Braille document to see results</p>
+                        <p>Upload and process a Braille document or image to see results</p>
                     </div>
                 {% endif %}
             </div>
@@ -577,20 +616,22 @@
 
     <script>
         // Show flash message and then fade out after 5 seconds
-        const flashMessage = document.getElementById('flash-message');
-        if (flashMessage) {
-            flashMessage.style.display = 'block';
-            setTimeout(() => {
-                flashMessage.style.opacity = '1';
+        const flashMessages = document.querySelectorAll('#flash-message');
+        flashMessages.forEach(flashMessage => {
+            if (flashMessage) {
+                flashMessage.style.display = 'block';
                 setTimeout(() => {
-                    flashMessage.style.transition = 'opacity 1s ease';
-                    flashMessage.style.opacity = '0';
+                    flashMessage.style.opacity = '1';
                     setTimeout(() => {
-                        flashMessage.style.display = 'none';
-                    }, 1000);
-                }, 5000);
-            }, 100);
-        }
+                        flashMessage.style.transition = 'opacity 1s ease';
+                        flashMessage.style.opacity = '0';
+                        setTimeout(() => {
+                            flashMessage.style.display = 'none';
+                        }, 1000);
+                    }, 5000);
+                }, 100);
+            }
+        });
 
         // File upload handling
         const dropArea = document.getElementById('drop-area');
@@ -656,12 +697,12 @@
 
         function handleFiles(files) {
             const file = files[0];
-            const validExtensions = ['.pdf', '.txt', '.doc', '.docx'];
+            const validExtensions = ['.pdf', '.txt', '.doc', '.docx', '.png', '.jpg', '.jpeg'];
             const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
 
             // Check if file is one of the supported types
             if (!validExtensions.includes(fileExtension)) {
-                showError('Please upload a supported file type (PDF, TXT, DOC, DOCX)');
+                showError('Please upload a supported file type (PDF, TXT, DOC, DOCX, PNG, JPG, JPEG)');
                 return;
             }
 
@@ -675,7 +716,7 @@
             // Display file info
             fileName.textContent = file.name;
             fileSize.textContent = formatFileSize(file.size);
-            fileType.textContent = file.type || getFileTypeFromExtension(fileExtension);
+            fileType.textContent = getFileTypeFromExtension(fileExtension);
 
             fileInfo.style.display = 'block';
             submitBtn.disabled = false;
@@ -686,7 +727,10 @@
                 '.pdf': 'PDF Document',
                 '.txt': 'Text File',
                 '.doc': 'Word Document',
-                '.docx': 'Word Document'
+                '.docx': 'Word Document',
+                '.png': 'PNG Image',
+                '.jpg': 'JPEG Image',
+                '.jpeg': 'JPEG Image'
             };
             return types[ext] || 'Unknown file type';
         }
@@ -748,7 +792,7 @@
                     // Handle error
                     showError('Error processing file: ' + xhr.responseText);
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Process Document';
+                    submitBtn.textContent = 'Process Document/Image';
                     progressContainer.style.display = 'none';
                 }
             });
@@ -756,7 +800,7 @@
             xhr.addEventListener('error', function() {
                 showError('Error uploading file. Please try again.');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Process Document';
+                submitBtn.textContent = 'Process Document/Image';
                 progressContainer.style.display = 'none';
             });
 

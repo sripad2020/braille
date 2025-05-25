@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Login | Braille Literature Analysis</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
@@ -24,6 +24,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -36,6 +37,8 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
         }
 
         #particles-js {
@@ -60,17 +63,17 @@
         .login-container {
             width: 100%;
             max-width: 450px;
-            padding: 40px;
+            padding: clamp(20px, 5vw, 40px);
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transform-style: preserve-3d;
-            transition: all 0.5s ease;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            margin: 20px;
+            margin: clamp(10px, 3vw, 20px);
+            touch-action: manipulation;
         }
 
         .login-container:hover {
@@ -80,11 +83,11 @@
 
         .login-header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: clamp(20px, 5vw, 40px);
         }
 
         .login-header h1 {
-            font-size: clamp(2rem, 6vw, 2.5rem);
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
             margin-bottom: 10px;
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
@@ -94,25 +97,26 @@
         }
 
         .login-header p {
-            font-size: clamp(0.9rem, 3.5vw, 1rem);
+            font-size: clamp(0.8rem, 3vw, 1rem);
             color: rgba(255, 255, 255, 0.7);
             font-family: 'Roboto Mono', monospace;
         }
 
         .input-group {
             position: relative;
-            margin-bottom: 25px;
+            margin-bottom: clamp(15px, 4vw, 25px);
         }
 
         .input-group input {
             width: 100%;
-            padding: 12px 20px 12px 45px;
+            padding: clamp(8px, 3vw, 12px) clamp(15px, 4vw, 20px) clamp(8px, 3vw, 12px) clamp(35px, 10vw, 45px);
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 50px;
             color: white;
-            font-size: clamp(0.9rem, 3vw, 1rem);
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
             transition: all 0.3s ease;
+            -webkit-appearance: none;
         }
 
         .input-group input:focus {
@@ -123,11 +127,11 @@
 
         .input-group i {
             position: absolute;
-            left: 15px;
+            left: clamp(10px, 3vw, 15px);
             top: 50%;
             transform: translateY(-50%);
             color: rgba(255, 255, 255, 0.7);
-            font-size: clamp(0.9rem, 3vw, 1rem);
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
             transition: all 0.3s ease;
         }
 
@@ -138,30 +142,30 @@
         .btn {
             display: inline-block;
             width: 100%;
-            padding: 12px;
+            padding: clamp(8px, 3vw, 12px);
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             color: white;
             border: none;
             border-radius: 50px;
-            font-size: clamp(0.9rem, 3vw, 1rem);
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
-            margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(108, 255, 255, 0.3);
+            margin-bottom: clamp(15px, 4vw, 20px);
             touch-action: manipulation;
         }
 
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(108, 99, 255, 0.4);
+        .btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(108, 99, 255, 0.2);
         }
 
         .login-footer {
             text-align: center;
-            margin-top: 20px;
+            margin-top: clamp(15px, 4vw, 20px);
             color: rgba(255, 255, 255, 0.7);
-            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
         }
 
         .login-footer a {
@@ -170,35 +174,35 @@
             transition: all 0.3s ease;
         }
 
-        .login-footer a:hover {
+        .login-footer a:active {
             text-decoration: underline;
         }
 
         .social-login {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
+            gap: clamp(8px, 2vw, 15px);
+            margin-top: clamp(15px, 4vw, 30px);
         }
 
         .social-btn {
-            width: 50px;
-            height: 50px;
+            width: clamp(35px, 10vw, 50px);
+            height: clamp(35px, 10vw, 50px);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             background: rgba(255, 255, 255, 0.1);
             color: white;
-            font-size: clamp(1rem, 3vw, 1.2rem);
+            font-size: clamp(0.8rem, 2.5vw, 1.2rem);
             transition: all 0.3s ease;
             touch-action: manipulation;
         }
 
-        .social-btn:hover {
-            transform: translateY(-3px);
+        .social-btn:active {
+            transform: translateY(-2px);
             background: linear-gradient(45deg, var(--primary), var(--secondary));
-            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+            box-shadow: 0 5px 10px rgba(108, 99, 255, 0.2);
         }
 
         .three-dots {
@@ -214,105 +218,105 @@
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .login-container {
-                padding: 30px 20px;
-                margin: 15px;
+                padding: clamp(15px, 4vw, 30px) clamp(10px, 3vw, 20px);
+                margin: clamp(10px, 3vw, 15px);
                 max-width: 90%;
             }
 
             .login-header h1 {
-                font-size: clamp(1.8rem, 5vw, 2rem);
+                font-size: clamp(1.5rem, 4.5vw, 2rem);
             }
 
             .login-header p {
-                font-size: clamp(0.8rem, 3vw, 0.9rem);
+                font-size: clamp(0.7rem, 2.5vw, 0.9rem);
             }
 
             .input-group {
-                margin-bottom: 20px;
+                margin-bottom: clamp(12px, 3.5vw, 20px);
             }
 
             .input-group input {
-                padding: 10px 15px 10px 40px;
-                font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                padding: clamp(8px, 2.5vw, 10px) clamp(12px, 3.5vw, 15px) clamp(8px, 2.5vw, 10px) clamp(30px, 9vw, 40px);
+                font-size: clamp(0.7rem, 2.2vw, 0.9rem);
             }
 
             .input-group i {
-                left: 12px;
-                font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                left: clamp(8px, 2.5vw, 12px);
+                font-size: clamp(0.7rem, 2.2vw, 0.9rem);
             }
 
             .btn {
-                padding: 10px;
-                font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                padding: clamp(8px, 2.5vw, 10px);
+                font-size: clamp(0.7rem, 2.2vw, 0.9rem);
             }
 
             .login-footer {
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .social-btn {
-                width: 40px;
-                height: 40px;
-                font-size: clamp(0.9rem, 2.5vw, 1rem);
+                width: clamp(30px, 8vw, 40px);
+                height: clamp(30px, 8vw, 40px);
+                font-size: clamp(0.7rem, 2.2vw, 1rem);
             }
 
             .social-login {
-                gap: 10px;
-                margin-top: 20px;
+                gap: clamp(6px, 1.8vw, 10px);
+                margin-top: clamp(12px, 3.5vw, 20px);
             }
         }
 
         @media (max-width: 480px) {
             .login-container {
-                padding: 20px 15px;
-                margin: 10px;
+                padding: clamp(10px, 3vw, 20px) clamp(8px, 2.5vw, 15px);
+                margin: clamp(8px, 2.5vw, 10px);
                 max-width: 95%;
             }
 
             .login-header {
-                margin-bottom: 30px;
+                margin-bottom: clamp(15px, 4vw, 30px);
             }
 
             .login-header h1 {
-                font-size: clamp(1.5rem, 4.5vw, 1.8rem);
+                font-size: clamp(1.2rem, 4vw, 1.8rem);
             }
 
             .login-header p {
-                font-size: clamp(0.7rem, 2.5vw, 0.8rem);
+                font-size: clamp(0.6rem, 2vw, 0.8rem);
             }
 
             .input-group {
-                margin-bottom: 15px;
+                margin-bottom: clamp(10px, 3vw, 15px);
             }
 
             .input-group input {
-                padding: 8px 15px 8px 35px;
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                padding: clamp(6px, 2vw, 8px) clamp(10px, 3vw, 15px) clamp(6px, 2vw, 8px) clamp(25px, 8vw, 35px);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .input-group i {
-                left: 10px;
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                left: clamp(6px, 2vw, 10px);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .btn {
-                padding: 8px;
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                padding: clamp(6px, 2vw, 8px);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .login-footer {
-                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+                font-size: clamp(0.5rem, 1.5vw, 0.7rem);
             }
 
             .social-btn {
-                width: 35px;
-                height: 35px;
-                font-size: clamp(0.8rem, 2vw, 0.9rem);
+                width: clamp(28px, 7vw, 35px);
+                height: clamp(28px, 7vw, 35px);
+                font-size: clamp(0.6rem, 1.8vw, 0.9rem);
             }
 
             .social-login {
-                gap: 8px;
-                margin-top: 15px;
+                gap: clamp(5px, 1.5vw, 8px);
+                margin-top: clamp(10px, 3vw, 15px);
             }
         }
     </style>
@@ -322,7 +326,7 @@
     <div class="braille-pattern"></div>
     <div class="three-dots" id="three-dots"></div>
 
-    <div class="login-container" data-tilt data-tilt-max="5" data-tilt-glare data-tilt-max-glare="0.2">
+    <div class="login-container">
         <div class="login-header">
             <h1>Welcome Back</h1>
             <p>Sign in to access Braille Literature Analysis</p>
@@ -358,7 +362,7 @@
         particlesJS("particles-js", {
             "particles": {
                 "number": {
-                    "value": window.innerWidth < 768 ? 40 : 60,
+                    "value": window.innerWidth < 768 ? 30 : 50,
                     "density": {
                         "enable": true,
                         "value_area": 800
@@ -372,51 +376,37 @@
                     "stroke": {
                         "width": 0,
                         "color": "#000000"
-                    },
-                    "polygon": {
-                        "nb_sides": 5
                     }
                 },
                 "opacity": {
-                    "value": 0.5,
+                    "value": 0.4,
                     "random": false,
                     "anim": {
-                        "enable": false,
-                        "speed": 1,
-                        "opacity_min": 0.1,
-                        "sync": false
+                        "enable": false
                     }
                 },
                 "size": {
-                    "value": window.innerWidth < 768 ? 2 : 3,
+                    "value": window.innerWidth < 768 ? 1.5 : 2.5,
                     "random": true,
                     "anim": {
-                        "enable": false,
-                        "speed": 40,
-                        "size_min": 0.1,
-                        "sync": false
+                        "enable": false
                     }
                 },
                 "line_linked": {
                     "enable": true,
-                    "distance": 150,
+                    "distance": 120,
                     "color": "#6C63FF",
-                    "opacity": 0.3,
+                    "opacity": 0.2,
                     "width": 1
                 },
                 "move": {
                     "enable": true,
-                    "speed": window.innerWidth < 768 ? 1 : 1.5,
+                    "speed": window.innerWidth < 768 ? 0.8 : 1.2,
                     "direction": "none",
                     "random": false,
                     "straight": false,
                     "out_mode": "out",
-                    "bounce": false,
-                    "attract": {
-                        "enable": false,
-                        "rotateX": 600,
-                        "rotateY": 1200
-                    }
+                    "bounce": false
                 }
             },
             "interactivity": {
@@ -434,27 +424,13 @@
                 },
                 "modes": {
                     "grab": {
-                        "distance": 140,
+                        "distance": 100,
                         "line_linked": {
-                            "opacity": 0.8
+                            "opacity": 0.6
                         }
                     },
-                    "bubble": {
-                        "distance": 400,
-                        "size": 40,
-                        "duration": 2,
-                        "opacity": 8,
-                        "speed": 3
-                    },
-                    "repulse": {
-                        "distance": 200,
-                        "duration": 0.4
-                    },
                     "push": {
-                        "particles_nb": 4
-                    },
-                    "remove": {
-                        "particles_nb": 2
+                        "particles_nb": 3
                     }
                 }
             },
@@ -471,34 +447,34 @@
 
         // Camera
         const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        camera.position.z = window.innerWidth < 768 ? 20 : 30;
+        camera.position.z = window.innerWidth < 768 ? 15 : 25;
 
         // Renderer
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setSize(width, height);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
         dotsContainer.appendChild(renderer.domElement);
 
         // Braille dots
-        const dotGeometry = new THREE.SphereGeometry(0.3, 16, 16);
+        const dotGeometry = new THREE.SphereGeometry(0.25, 12, 12);
         const dotMaterial = new THREE.MeshPhongMaterial({
             color: 0x6C63FF,
             emissive: 0x6C63FF,
             emissiveIntensity: 0.1,
-            shininess: 100,
+            shininess: 80,
             transparent: true,
-            opacity: 0.7
+            opacity: 0.6
         });
 
         // Create floating dots
         const dots = [];
-        const dotCount = window.innerWidth < 768 ? 20 : 30;
+        const dotCount = window.innerWidth < 768 ? 15 : 25;
 
         for (let i = 0; i < dotCount; i++) {
             const dot = new THREE.Mesh(dotGeometry, dotMaterial);
 
             // Random position within a sphere
-            const radius = window.innerWidth < 768 ? 10 : 15;
+            const radius = window.innerWidth < 768 ? 8 : 12;
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.random() * Math.PI;
             const x = radius * Math.sin(phi) * Math.cos(theta);
@@ -508,15 +484,15 @@
             dot.position.set(x, y, z);
 
             // Random scale and rotation speed
-            dot.scale.setScalar(0.5 + Math.random() * 0.5);
+            dot.scale.setScalar(0.4 + Math.random() * 0.4);
             dot.userData = {
                 rotationSpeed: new THREE.Vector3(
-                    Math.random() * 0.02 - 0.01,
-                    Math.random() * 0.02 - 0.01,
-                    Math.random() * 0.02 - 0.01
+                    Math.random() * 0.015 - 0.0075,
+                    Math.random() * 0.015 - 0.0075,
+                    Math.random() * 0.015 - 0.0075
                 ),
-                pulseSpeed: Math.random() * 0.005 + 0.005,
-                pulseSize: Math.random() * 0.3 + 0.7
+                pulseSpeed: Math.random() * 0.004 + 0.004,
+                pulseSize: Math.random() * 0.25 + 0.6
             };
 
             scene.add(dot);
@@ -524,14 +500,14 @@
         }
 
         // Add lights
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
         scene.add(ambientLight);
 
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
         directionalLight.position.set(1, 1, 1);
         scene.add(directionalLight);
 
-        const pointLight = new THREE.PointLight(0x6C63FF, 0.5, 50);
+        const pointLight = new THREE.PointLight(0x6C63FF, 0.4, 40);
         pointLight.position.set(5, 5, 5);
         scene.add(pointLight);
 
@@ -546,12 +522,12 @@
                 dot.rotation.z += dot.userData.rotationSpeed.z;
 
                 // Pulsing effect
-                const pulse = dot.userData.pulseSize + Math.sin(Date.now() * dot.userData.pulseSpeed) * 0.2;
+                const pulse = dot.userData.pulseSize + Math.sin(Date.now() * dot.userData.pulseSpeed) * 0.15;
                 dot.scale.set(pulse, pulse, pulse);
             });
 
             // Rotate scene slightly
-            scene.rotation.y += window.innerWidth < 768 ? 0.0003 : 0.0005;
+            scene.rotation.y += window.innerWidth < 768 ? 0.0002 : 0.0004;
 
             renderer.render(scene, camera);
         }
@@ -567,18 +543,7 @@
             camera.updateProjectionMatrix();
 
             renderer.setSize(width, height);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        });
-
-        // Tilt.js initialization for login container
-        $(document).ready(function() {
-            if (window.innerWidth >= 768) {
-                $('.login-container').tilt({
-                    glare: true,
-                    maxGlare: 0.2,
-                    maxTilt: 5
-                });
-            }
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
         });
     </script>
 </body>

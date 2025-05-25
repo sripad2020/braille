@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Braille Analysis Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -20,6 +20,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -28,25 +29,27 @@
             color: var(--light);
             overflow-x: hidden;
             line-height: 1.6;
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: clamp(15px, 3vw, 20px);
+            padding: clamp(10px, 2.5vw, 20px);
         }
 
         .dashboard-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: clamp(15px, 3vw, 20px) 0;
+            padding: clamp(10px, 2.5vw, 20px) 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: clamp(20px, 4vw, 30px);
+            margin-bottom: clamp(15px, 3.5vw, 30px);
         }
 
         .dashboard-title {
-            font-size: clamp(1.5rem, 5vw, 2rem);
+            font-size: clamp(1.3rem, 4.5vw, 2rem);
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             background-clip: text;
@@ -56,58 +59,59 @@
         .user-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: clamp(6px, 1.5vw, 10px);
         }
 
         .username {
             font-weight: 600;
-            font-size: clamp(0.9rem, 3vw, 1rem);
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
         }
 
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: clamp(20px, 4vw, 30px);
+            gap: clamp(15px, 3.5vw, 30px);
         }
 
         .dashboard-card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 15px;
-            padding: clamp(15px, 3vw, 25px);
+            padding: clamp(10px, 2.5vw, 25px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .card-title {
-            font-size: clamp(1.2rem, 4vw, 1.5rem);
-            margin-bottom: clamp(15px, 3vw, 20px);
+            font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+            margin-bottom: clamp(10px, 2.5vw, 20px);
             color: var(--primary);
         }
 
         .file-upload-area {
             border: 2px dashed rgba(255, 255, 255, 0.3);
             border-radius: 10px;
-            padding: clamp(20px, 4vw, 30px);
+            padding: clamp(15px, 3.5vw, 30px);
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-bottom: clamp(15px, 3vw, 20px);
+            margin-bottom: clamp(10px, 2.5vw, 20px);
+            touch-action: manipulation;
         }
 
-        .file-upload-area:hover {
+        .file-upload-area:active {
             border-color: var(--primary);
             background: rgba(108, 99, 255, 0.05);
         }
 
         .upload-icon {
-            font-size: clamp(2rem, 6vw, 3rem);
+            font-size: clamp(1.5rem, 5vw, 3rem);
             color: var(--primary);
-            margin-bottom: clamp(10px, 2vw, 15px);
+            margin-bottom: clamp(8px, 2vw, 15px);
         }
 
         .file-upload-area p {
-            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
         }
 
         .file-input {
@@ -115,8 +119,8 @@
         }
 
         .file-info {
-            margin-top: clamp(15px, 3vw, 20px);
-            padding: clamp(10px, 2vw, 15px);
+            margin-top: clamp(10px, 2.5vw, 20px);
+            padding: clamp(8px, 2vw, 15px);
             background: rgba(0, 0, 0, 0.2);
             border-radius: 8px;
             display: none;
@@ -130,17 +134,17 @@
 
         .file-info-label {
             color: rgba(255, 255, 255, 0.7);
-            font-size: clamp(0.7rem, 2vw, 0.8rem);
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
         }
 
         .file-info-value {
             font-weight: 600;
-            font-size: clamp(0.7rem, 2vw, 0.8rem);
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
         }
 
         .btn {
             display: inline-block;
-            padding: clamp(10px, 2vw, 12px) clamp(20px, 4vw, 30px);
+            padding: clamp(8px, 2vw, 12px) clamp(15px, 3.5vw, 30px);
             background: linear-gradient(45deg, var(--primary), var(--secondary));
             color: white;
             border: none;
@@ -150,13 +154,13 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
-            font-size: clamp(0.9rem, 3vw, 1rem);
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
             touch-action: manipulation;
         }
 
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(108, 99, 255, 0.4);
+        .btn:active {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(108, 99, 255, 0.2);
         }
 
         .btn:disabled {
@@ -168,41 +172,42 @@
 
         .language-select {
             width: 100%;
-            padding: clamp(10px, 2vw, 12px);
+            padding: clamp(8px, 2vw, 12px);
             border-radius: 8px;
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
-            margin-bottom: clamp(15px, 3vw, 20px);
+            margin-bottom: clamp(10px, 2.5vw, 20px);
             font-family: 'Poppins', sans-serif;
-            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            -webkit-appearance: none;
         }
 
         .language-select-label {
-            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
             margin-bottom: 5px;
             display: block;
         }
 
         .result-area {
-            min-height: 150px;
+            min-height: 120px;
             max-height: 350px;
             overflow-y: auto;
-            padding: clamp(10px, 2vw, 15px);
+            padding: clamp(8px, 2vw, 15px);
             background: rgba(0, 0, 0, 0.2);
             border-radius: 8px;
             white-space: pre-wrap;
-            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
         }
 
         .result-title {
             margin-bottom: 10px;
             color: var(--accent);
-            font-size: clamp(0.9rem, 3vw, 1rem);
+            font-size: clamp(0.8rem, 2.5vw, 1rem);
         }
 
         .tone-analysis {
-            margin-top: clamp(15px, 3vw, 20px);
+            margin-top: clamp(10px, 2.5vw, 20px);
         }
 
         .tone-analysis ul {
@@ -211,19 +216,19 @@
         }
 
         .tone-analysis li {
-            padding: clamp(8px, 1.5vw, 10px);
+            padding: clamp(6px, 1.5vw, 10px);
             background: rgba(0, 0, 0, 0.2);
             border-radius: 8px;
             margin-bottom: 8px;
-            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
         }
 
         .alert {
-            padding: clamp(10px, 2vw, 15px);
+            padding: clamp(8px, 2vw, 15px);
             border-radius: 8px;
-            margin-bottom: clamp(15px, 3vw, 20px);
+            margin-bottom: clamp(10px, 2.5vw, 20px);
             display: none;
-            font-size: clamp(0.7rem, 2vw, 0.8rem);
+            font-size: clamp(0.6rem, 1.8vw, 0.8rem);
         }
 
         .alert-success {
@@ -243,10 +248,11 @@
             border: none;
             color: var(--secondary);
             cursor: pointer;
-            font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            touch-action: manipulation;
         }
 
-        .logout-btn:hover {
+        .logout-btn:active {
             text-decoration: underline;
         }
 
@@ -254,7 +260,7 @@
             width: 100%;
             background-color: rgba(0, 0, 0, 0.2);
             border-radius: 10px;
-            margin: clamp(15px, 3vw, 20px) 0;
+            margin: clamp(10px, 2.5vw, 20px) 0;
             display: none;
         }
 
@@ -268,11 +274,11 @@
 
         #listen-btn, #tone-btn {
             background: var(--accent);
-            margin-top: clamp(10px, 2vw, 15px);
+            margin-top: clamp(8px, 2vw, 15px);
             transition: all 0.3s ease;
         }
 
-        #listen-btn:hover, #tone-btn:hover {
+        #listen-btn:active, #tone-btn:active {
             background: #3aa76d;
             transform: translateY(-2px);
         }
@@ -287,7 +293,7 @@
             max-width: 100%;
             max-height: 300px;
             border-radius: 8px;
-            margin-bottom: clamp(10px, 2vw, 15px);
+            margin-bottom: clamp(8px, 2vw, 15px);
             display: block;
             margin-left: auto;
             margin-right: auto;
@@ -300,95 +306,95 @@
             }
 
             .container {
-                padding: clamp(10px, 2vw, 15px);
+                padding: clamp(8px, 2vw, 15px);
             }
 
             .dashboard-header {
                 flex-direction: column;
                 align-items: flex-start;
-                padding: clamp(10px, 2vw, 15px) 0;
-                margin-bottom: clamp(15px, 3vw, 20px);
+                padding: clamp(8px, 2vw, 15px) 0;
+                margin-bottom: clamp(10px, 2.5vw, 20px);
             }
 
             .dashboard-title {
-                font-size: clamp(1.3rem, 4vw, 1.8rem);
+                font-size: clamp(1.2rem, 4vw, 1.8rem);
                 margin-bottom: 10px;
             }
 
             .user-info {
-                gap: 8px;
+                gap: clamp(5px, 1.2vw, 8px);
             }
 
             .username {
-                font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                font-size: clamp(0.7rem, 2.2vw, 0.9rem);
             }
 
             .logout-btn {
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .dashboard-card {
-                padding: clamp(10px, 2vw, 20px);
+                padding: clamp(8px, 2vw, 20px);
             }
 
             .card-title {
-                font-size: clamp(1rem, 3.5vw, 1.3rem);
-                margin-bottom: clamp(10px, 2vw, 15px);
+                font-size: clamp(1rem, 3.2vw, 1.3rem);
+                margin-bottom: clamp(8px, 2vw, 15px);
             }
 
             .file-upload-area {
-                padding: clamp(15px, 3vw, 20px);
-                margin-bottom: clamp(10px, 2vw, 15px);
+                padding: clamp(10px, 2.5vw, 20px);
+                margin-bottom: clamp(8px, 2vw, 15px);
             }
 
             .upload-icon {
-                font-size: clamp(1.5rem, 5vw, 2.5rem);
-                margin-bottom: clamp(8px, 1.5vw, 10px);
+                font-size: clamp(1.3rem, 4.5vw, 2.5rem);
+                margin-bottom: clamp(6px, 1.5vw, 10px);
             }
 
             .file-upload-area p {
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .file-info {
-                margin-top: clamp(10px, 2vw, 15px);
-                padding: clamp(8px, 1.5vw, 10px);
+                margin-top: clamp(8px, 2vw, 15px);
+                padding: clamp(6px, 1.5vw, 10px);
             }
 
             .btn {
-                padding: clamp(8px, 1.5vw, 10px) clamp(15px, 3vw, 20px);
-                font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                padding: clamp(6px, 1.5vw, 10px) clamp(10px, 2.5vw, 20px);
+                font-size: clamp(0.7rem, 2.2vw, 0.9rem);
             }
 
             .language-select {
-                padding: clamp(8px, 1.5vw, 10px);
-                margin-bottom: clamp(10px, 2vw, 15px);
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                padding: clamp(6px, 1.5vw, 10px);
+                margin-bottom: clamp(8px, 2vw, 15px);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .language-select-label {
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .result-area {
-                min-height: 120px;
+                min-height: 100px;
                 max-height: 300px;
-                padding: clamp(8px, 1.5vw, 10px);
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                padding: clamp(6px, 1.5vw, 10px);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .result-title {
-                font-size: clamp(0.8rem, 2.5vw, 0.9rem);
+                font-size: clamp(0.7rem, 2.2vw, 0.9rem);
             }
 
             .alert {
-                padding: clamp(8px, 1.5vw, 10px);
-                margin-bottom: clamp(10px, 2vw, 15px);
-                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+                padding: clamp(6px, 1.5vw, 10px);
+                margin-bottom: clamp(8px, 2vw, 15px);
+                font-size: clamp(0.5rem, 1.5vw, 0.7rem);
             }
 
             .tone-analysis li {
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .image-preview {
@@ -398,101 +404,101 @@
 
         @media (max-width: 480px) {
             .container {
-                padding: clamp(8px, 1.5vw, 10px);
+                padding: clamp(6px, 1.5vw, 10px);
             }
 
             .dashboard-header {
-                padding: clamp(8px, 1.5vw, 10px) 0;
-                margin-bottom: clamp(10px, 2vw, 15px);
+                padding: clamp(6px, 1.5vw, 10px) 0;
+                margin-bottom: clamp(8px, 2vw, 15px);
             }
 
             .dashboard-title {
-                font-size: clamp(1.2rem, 3.5vw, 1.5rem);
+                font-size: clamp(1rem, 3.5vw, 1.5rem);
             }
 
             .user-info {
-                gap: 6px;
+                gap: clamp(4px, 1vw, 6px);
             }
 
             .username {
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .logout-btn {
-                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+                font-size: clamp(0.5rem, 1.5vw, 0.7rem);
             }
 
             .dashboard-card {
-                padding: clamp(8px, 1.5vw, 15px);
+                padding: clamp(6px, 1.5vw, 15px);
             }
 
             .card-title {
-                font-size: clamp(0.9rem, 3vw, 1.2rem);
-                margin-bottom: clamp(8px, 1.5vw, 10px);
+                font-size: clamp(0.8rem, 2.8vw, 1.2rem);
+                margin-bottom: clamp(6px, 1.5vw, 10px);
             }
 
             .file-upload-area {
-                padding: clamp(10px, 2vw, 15px);
-                margin-bottom: clamp(8px, 1.5vw, 10px);
+                padding: clamp(8px, 2vw, 15px);
+                margin-bottom: clamp(6px, 1.5vw, 10px);
             }
 
             .upload-icon {
-                font-size: clamp(1.2rem, 4vw, 2rem);
-                margin-bottom: clamp(6px, 1vw, 8px);
+                font-size: clamp(1rem, 3.5vw, 2rem);
+                margin-bottom: clamp(5px, 1.2vw, 8px);
             }
 
             .file-upload-area p {
-                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+                font-size: clamp(0.5rem, 1.5vw, 0.7rem);
             }
 
             .file-info {
-                margin-top: clamp(8px, 1.5vw, 10px);
-                padding: clamp(6px, 1vw, 8px);
+                margin-top: clamp(6px, 1.5vw, 10px);
+                padding: clamp(5px, 1.2vw, 8px);
             }
 
             .file-info-label,
             .file-info-value {
-                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+                font-size: clamp(0.5rem, 1.5vw, 0.7rem);
             }
 
             .btn {
-                padding: clamp(6px, 1vw, 8px) clamp(10px, 2vw, 15px);
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                padding: clamp(5px, 1.2vw, 8px) clamp(8px, 2vw, 15px);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .language-select {
-                padding: clamp(6px, 1vw, 8px);
-                margin-bottom: clamp(8px, 1.5vw, 10px);
-                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+                padding: clamp(5px, 1.2vw, 8px);
+                margin-bottom: clamp(6px, 1.5vw, 10px);
+                font-size: clamp(0.5rem, 1.5vw, 0.7rem);
             }
 
             .language-select-label {
-                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+                font-size: clamp(0.5rem, 1.5vw, 0.7rem);
             }
 
             .result-area {
-                min-height: 100px;
+                min-height: 80px;
                 max-height: 250px;
-                padding: clamp(6px, 1vw, 8px);
-                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+                padding: clamp(5px, 1.2vw, 8px);
+                font-size: clamp(0.5rem, 1.5vw, 0.7rem);
             }
 
             .result-title {
-                font-size: clamp(0.7rem, 2vw, 0.8rem);
+                font-size: clamp(0.6rem, 1.8vw, 0.8rem);
             }
 
             .alert {
-                padding: clamp(6px, 1vw, 8px);
-                margin-bottom: clamp(8px, 1.5vw, 10px);
-                font-size: clamp(0.5rem, 1.5vw, 0.6rem);
+                padding: clamp(5px, 1.2vw, 8px);
+                margin-bottom: clamp(6px, 1.5vw, 10px);
+                font-size: clamp(0.4rem, 1.2vw, 0.6rem);
             }
 
             .tone-analysis li {
-                font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+                font-size: clamp(0.5rem, 1.5vw, 0.7rem);
             }
 
             #listen-btn, #tone-btn {
-                margin-top: clamp(8px, 1.5vw, 10px);
+                margin-top: clamp(6px, 1.5vw, 10px);
             }
 
             .image-preview {

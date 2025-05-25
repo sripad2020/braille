@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Braille Dashboard</title>
+    <title>Braille Analysis Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -283,6 +283,16 @@
             transform: none;
         }
 
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-bottom: clamp(10px, 2vw, 15px);
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .dashboard-grid {
@@ -379,6 +389,10 @@
 
             .tone-analysis li {
                 font-size: clamp(0.7rem, 2vw, 0.8rem);
+            }
+
+            .image-preview {
+                max-height: 250px;
             }
         }
 
@@ -480,6 +494,10 @@
             #listen-btn, #tone-btn {
                 margin-top: clamp(8px, 1.5vw, 10px);
             }
+
+            .image-preview {
+                max-height: 200px;
+            }
         }
     </style>
 </head>
@@ -577,37 +595,48 @@
             <div class="dashboard-card">
                 <h2 class="card-title">Analysis Results</h2>
 
-                {% if original_text %}
+                {% if is_image and uploaded_image %}
+                    <h3 class="result-title">Uploaded Image:</h3>
+                    <img src="data:image/jpeg;base64,{{ uploaded_image }}" class="image-preview" alt="Uploaded image for analysis">
+                    <h3 class="result-title">Image Analysis ({{ language|upper }}):</h3>
+                    <div class="result-area" id="translated-text">
+                        {{ translated_text }}
+                    </div>
+                    <button id="listen-btn" class="btn" aria-label="Listen to image analysis">
+                        <i class="fas fa-volume-up"></i> Listen to Analysis
+                    </button>
+                    <button id="tone-btn" class="btn" onclick="window.location.href='/tone_analysis'" aria-label="Analyze tone of image analysis">
+                        <i class="fas fa-chart-line"></i> Analyze Tone
+                    </button>
+                {% elif original_text %}
                     <h3 class="result-title">Original Braille Content:</h3>
                     <div class="result-area" id="original-text">
                         {{ original_text }}
                     </div>
-
                     <h3 class="result-title">Translated Content ({{ language|upper }}):</h3>
                     <div class="result-area" id="translated-text">
                         {{ translated_text }}
                     </div>
-
                     <button id="listen-btn" class="btn" aria-label="Listen to translated text">
                         <i class="fas fa-volume-up"></i> Listen to Translation
                     </button>
                     <button id="tone-btn" class="btn" onclick="window.location.href='/tone_analysis'" aria-label="Analyze tone of translated text">
                         <i class="fas fa-chart-line"></i> Analyze Tone
                     </button>
-
-                    {% if tone_points %}
-                        <div class="tone-analysis">
-                            <h3 class="result-title">Tone Analysis:</h3>
-                            <ul>
-                                {% for point in tone_points %}
-                                    <li>{{ point }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    {% endif %}
                 {% else %}
                     <div class="result-area" style="display: flex; justify-content: center; align-items: center; color: rgba(255,255,255,0.5);">
                         <p>Upload and process a Braille document or image to see results</p>
+                    </div>
+                {% endif %}
+
+                {% if tone_points %}
+                    <div class="tone-analysis">
+                        <h3 class="result-title">Tone Analysis:</h3>
+                        <ul>
+                            {% for point in tone_points %}
+                                <li>{{ point }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 {% endif %}
             </div>
@@ -851,14 +880,14 @@
             listenBtn.disabled = true;
 
             utterance.onend = function() {
-                listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen to Translation';
+                listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> {% if is_image %}Listen to Analysis{% else %}Listen to Translation{% endif %}';
                 listenBtn.disabled = false;
             };
 
             utterance.onerror = function(event) {
                 console.error('SpeechSynthesis error:', event);
                 showError('Error reading text. Please try again.');
-                listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> Listen to Translation';
+                listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> {% if is_image %}Listen to Analysis{% else %}Listen to Translation{% endif %}';
                 listenBtn.disabled = false;
             };
 

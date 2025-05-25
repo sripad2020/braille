@@ -13,8 +13,10 @@ import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from nltk.probability import FreqDist
-import re,cv2
+import re, cv2
 import logging
+import numpy as np
+import base64
 
 # Download NLTK resources
 nltk.download('punkt')
@@ -24,7 +26,8 @@ nltk.download('stopwords')
 logging.basicConfig(level=logging.DEBUG)
 
 # Configure Gemini API
-genai.configure(api_key=os.getenv('GEMINI_API_KEY', 'AIzaSyBvph-JgoPgpF51Fb-0Q-9ikeVwaaCTE2A'))  # Use env variable in production
+genai.configure(
+    api_key=os.getenv('GEMINI_API_KEY', 'AIzaSyBvph-JgoPgpF51Fb-0Q-9ikeVwaaCTE2A'))  # Use env variable in production
 
 app = Flask(__name__)
 app.secret_key = "The APP key"
@@ -107,116 +110,35 @@ def extract_text_from_file(filepath, extension):
         logging.error(f"Error extracting text from {extension}: {e}")
     return text
 
-import cv2
-import numpy as np
-from skimage import measure
-from PIL import Image
-import logging
 
-def extract_braille_from_image(filepath):
+def analyze_image_with_gemini(filepath):
     try:
-        # Load image
-        img = cv2.imread(filepath)
-        if img is None:
-            raise ValueError("Failed to load image")
+        img = Image.open(filepath)
 
-        # Convert to grayscale
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Convert image to base64 for display
+        with open(filepath, "rb") as image_file:
+            encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
-        # Apply Gaussian blur to reduce noise
-        blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        prompt = [
+            img,
+                "Detect the image as braille image or not , if Yes analyse the image and indetify characters based on your analysis and explain about the image,"
+                "Analyse the dots and give me characters information in English"
+        ]
+        response = model.generate_content(prompt)
 
-        # Adaptive thresholding for binarization
-        thresh = cv2.adaptiveThreshold(
-            blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2
-        )
-
-        # Morphological operations to enhance dots
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-        cleaned = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-
-        # Blob detection using scikit-image
-        labels = measure.label(cleaned, background=0)
-        regions = measure.regionprops(labels)
-
-        # Filter blobs by size and circularity to identify Braille dots
-        min_area = 10  # Adjust based on image resolution
-        max_area = 200
-        min_circularity = 0.7
-        dots = []
-        for region in regions:
-            area = region.area
-            if min_area < area < max_area:
-                perimeter = region.perimeter
-                if perimeter > 0:
-                    circularity = 4 * np.pi * area / (perimeter ** 2)
-                    if min_circularity < circularity < 1.3:
-                        centroid = region.centroid  # (y, x)
-                        dots.append((centroid[1], centroid[0]))  # (x, y)
-
-        if not dots:
-            logging.warning("No Braille dots detected")
-            return ""
-
-        # Estimate cell dimensions
-        dots = np.array(dots)
-        x_diffs = np.abs(np.diff(dots[:, 0]))
-        y_diffs = np.abs(np.diff(dots[:, 1]))
-        cell_width = np.median(x_diffs[x_diffs > 0]) if len(x_diffs) > 0 else 20
-        cell_height = np.median(y_diffs[y_diffs > 0]) if len(y_diffs) > 0 else 30
-
-        # Group dots into Braille cells (2x3 grid)
-        cells = []
-        dots = sorted(dots, key=lambda x: (x[1], x[0]))  # Sort by y, then x
-        cell_group = []
-        prev_y = dots[0][1]
-        for x, y in dots:
-            if abs(y - prev_y) > cell_height * 1.5:  # New row
-                if cell_group:
-                    cells.append(cell_group)
-                cell_group = [(x, y)]
-            else:
-                cell_group.append((x, y))
-            prev_y = y
-        if cell_group:
-            cells.append(cell_group)
-
-        braille_text = ""
-        for cell in cells:
-            # Sort dots in cell by x and y
-            cell = sorted(cell, key=lambda x: (x[0], x[1]))
-            grid = [[0, 0], [0, 0], [0, 0]]  # 3 rows, 2 columns
-            if not cell:
-                continue
-            cell_x_min = min(x for x, _ in cell)
-            cell_y_min = min(y for _, y in cell)
-
-            # Map dots to 2x3 grid
-            for x, y in cell:
-                col = 0 if abs(x - cell_x_min) < cell_width / 2 else 1
-                row = 0 if abs(y - cell_y_min) < cell_height / 3 else (
-                    1 if abs(y - cell_y_min) < 2 * cell_height / 3 else 2
-                )
-                grid[row][col] = 1
-
-            # Convert grid to Braille character
-            pattern = 0
-            for r in range(3):
-                for c in range(2):
-                    if grid[r][c]:
-                        pattern |= 1 << (5 - (r * 2 + c))
-            braille_char = chr(0x2800 + pattern) if pattern > 0 else '⠀'
-            braille_text += braille_char
-
-        if not braille_text.strip():
-            logging.warning("No valid Braille characters extracted")
-            return ""
-
-        return braille_text.strip()
-
+        return {
+            'image_base64': encoded_image,
+            'analysis': clean_markdown(response.text)
+        }
     except Exception as e:
-        logging.error(f"Braille image processing error: {e}")
-        return ""
+        logging.error(f"Gemini image analysis error: {e}")
+        return {
+            'image_base64': None,
+            'analysis': f"Error analyzing image: {str(e)}"
+        }
+
+
 def convert_paragraph_to_points(paragraph, num_points=5):
     sentences = sent_tokenize(paragraph)
     words = word_tokenize(paragraph.lower())
@@ -278,7 +200,6 @@ def translate_braille(text, language):
     return base_translation
 
 
-# Routes
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -359,7 +280,9 @@ def dashboard():
                            original_text=session.get('original_text'),
                            translated_text=session.get('translated_text'),
                            language=session.get('translation_language', 'en'),
-                           tone_points=session.get('tone_points'))
+                           tone_points=session.get('tone_points'),
+                           uploaded_image=session.get('uploaded_image'),
+                           is_image=session.get('is_image', False))
 
 
 @app.route('/upload', methods=['POST'])
@@ -383,23 +306,38 @@ def upload_file():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         extension = filename.rsplit('.', 1)[1].lower()
-        text = ""
+
+        # Clear previous session data
+        session.pop('original_text', None)
+        session.pop('translated_text', None)
+        session.pop('tone_points', None)
+        session.pop('uploaded_image', None)
+        session.pop('is_image', None)
+
         if extension in ['png', 'jpg', 'jpeg']:
-            text = extract_braille_from_image(filepath)
+            # Handle image upload
+            analysis_result = analyze_image_with_gemini(filepath)
+            session['original_text'] = None
+            session['translated_text'] = analysis_result['analysis']
+            session['uploaded_image'] = analysis_result['image_base64']
+            session['is_image'] = True
+            flash('Image analyzed successfully!', 'success')
         else:
+            # Handle document upload
             text = extract_text_from_file(filepath, extension)
-        if not text.strip():
-            flash('The file appears to be empty or could not be read', 'error')
-            return redirect(url_for('dashboard'))
-        if not contains_braille(text):
-            flash('The file does not contain Braille characters', 'error')
-            return redirect(url_for('dashboard'))
-        translated = translate_braille(text, language)
-        session['original_text'] = text[:1000] + "..." if len(text) > 1000 else text
-        session['translated_text'] = translated[:1000] + "..." if len(translated) > 1000 else translated
-        session['translation_language'] = language
-        session.pop('tone_points', None)  # Clear previous tone analysis
-        flash('File processed successfully!', 'success')
+            if not text.strip():
+                flash('The file appears to be empty or could not be read', 'error')
+                return redirect(url_for('dashboard'))
+            if not contains_braille(text):
+                flash('The file does not contain Braille characters', 'error')
+                return redirect(url_for('dashboard'))
+            translated = translate_braille(text, language)
+            session['original_text'] = text[:1000] + "..." if len(text) > 1000 else text
+            session['translated_text'] = translated[:1000] + "..." if len(translated) > 1000 else translated
+            session['translation_language'] = language
+            session['is_image'] = False
+            flash('File processed successfully!', 'success')
+
         return redirect(url_for('dashboard'))
     except Exception as e:
         flash(f'Error processing file: {str(e)}', 'error')
@@ -439,6 +377,7 @@ def tone_analysis():
         flash('Error performing tone analysis.', 'error')
     return redirect(url_for('dashboard'))
 
+
 @app.route('/logout')
 def logout():
     session.clear()
@@ -447,4 +386,4 @@ def logout():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()

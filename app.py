@@ -17,6 +17,8 @@ import re, cv2
 import logging
 import numpy as np
 import base64
+from io import BytesIO
+from flask import Response
 
 # Download NLTK resources
 nltk.download('punkt')
@@ -35,7 +37,15 @@ app.secret_key = "The APP key"
 # Configure upload folder and allowed extensions
 app.config['UPLOAD_FOLDER'] = 'Uploads'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'txt', 'doc', 'docx', 'png', 'jpg', 'jpeg'}
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB file size limit
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+
+# Mobile detection function
+def is_mobile(request):
+    user_agent = request.headers.get('User-Agent', '').lower()
+    return any(m in user_agent for m in ['mobile', 'iphone', 'android', 'blackberry'])
+
 
 # Braille translation mappings
 braille_to_text = {
@@ -115,15 +125,20 @@ def analyze_image_with_gemini(filepath):
     try:
         img = Image.open(filepath)
 
+        # Resize image if too large for mobile
+        max_size = (800, 800)
+        img.thumbnail(max_size, Image.Resampling.LANCZOS)
+
         # Convert image to base64 for display
-        with open(filepath, "rb") as image_file:
-            encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+        buffered = BytesIO()
+        img.save(buffered, format="JPEG" if img.format == 'JPEG' else "PNG")
+        encoded_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
 
         model = genai.GenerativeModel('gemini-2.5-flash')
         prompt = [
             img,
-                "Detect the image as braille image or not , if Yes analyse the image and indetify characters based on your analysis and explain about the image,"
-                "Analyse the dots and give me characters information in English"
+            "Detect the image as braille image or not , if Yes analyse the image and indetify characters based on your analysis and explain about the image,"
+            "Analyse the dots and give me characters information in English"
         ]
         response = model.generate_content(prompt)
 
@@ -202,12 +217,14 @@ def translate_braille(text, language):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    mobile = is_mobile(request)
+    return render_template('index.html', mobile=mobile)
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def logs():
-    return render_template('login.html')
+    mobile = is_mobile(request)
+    return render_template('login.html', mobile=mobile)
 
 
 @app.route('/log', methods=['POST'])
@@ -228,12 +245,14 @@ def login():
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password', 'error')
-    return render_template('login.html')
+    mobile = is_mobile(request)
+    return render_template('login.html', mobile=mobile)
 
 
 @app.route('/signups')
 def sign():
-    return render_template('signup.html')
+    mobile = is_mobile(request)
+    return render_template('signup.html', mobile=mobile)
 
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -267,7 +286,8 @@ def signup():
         conn.close()
         flash('Account created successfully! Please log in.', 'success')
         return redirect('/login')
-    return render_template('signup.html')
+    mobile = is_mobile(request)
+    return render_template('signup.html', mobile=mobile)
 
 
 @app.route('/dashboard', methods=['GET'])
@@ -275,6 +295,8 @@ def dashboard():
     if 'user_id' not in session:
         flash('Please log in first', 'error')
         return redirect(url_for('logs'))
+
+    mobile = is_mobile(request)
     return render_template('dashboard.html',
                            username=session.get('username'),
                            original_text=session.get('original_text'),
@@ -282,7 +304,8 @@ def dashboard():
                            language=session.get('translation_language', 'en'),
                            tone_points=session.get('tone_points'),
                            uploaded_image=session.get('uploaded_image'),
-                           is_image=session.get('is_image', False))
+                           is_image=session.get('is_image', False),
+                           mobile=mobile)
 
 
 @app.route('/upload', methods=['POST'])
@@ -290,17 +313,22 @@ def upload_file():
     if 'user_id' not in session:
         flash('Please log in first', 'error')
         return redirect(url_for('login'))
+
     if 'file' not in request.files:
         flash('No file selected', 'error')
         return redirect(url_for('dashboard'))
+
     file = request.files['file']
     language = request.form.get('language', 'en')
+
     if file.filename == '':
         flash('No file selected', 'error')
         return redirect(url_for('dashboard'))
+
     if not allowed_file(file.filename):
         flash('Allowed file types are PDF, TXT, DOC, DOCX, PNG, JPG, JPEG', 'error')
         return redirect(url_for('dashboard'))
+
     try:
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -385,5 +413,14 @@ def logout():
     return redirect(url_for('logs'))
 
 
+@app.after_request
+def add_header(response):
+    # Disable caching for all routes
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
+
+
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000)

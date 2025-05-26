@@ -20,7 +20,7 @@ import uuid
 # Download NLTK resources
 nltk.download('punkt')
 nltk.download('stopwords')
-
+nltk.download('punkt_tab')
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -272,7 +272,7 @@ def signup():
 def dashboard():
     if 'user_id' not in session:
         flash('Please log in first', 'error')
-        return redirect(url_for('login'))
+        return redirect(url_for('/login'))
 
     mobile = is_mobile(request)
     return render_template('dashboard.html',

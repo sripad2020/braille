@@ -299,6 +299,13 @@
             margin-right: auto;
         }
 
+        .image-error {
+            color: var(--secondary);
+            font-size: clamp(0.7rem, 2vw, 0.9rem);
+            text-align: center;
+            margin-bottom: clamp(8px, 2vw, 15px);
+        }
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .dashboard-grid {
@@ -489,7 +496,7 @@
 
             .alert {
                 padding: clamp(5px, 1.2vw, 8px);
-                margin-bottom: clamp(6px, 1.5vw, 10px);
+                margin-bottom: clamp(6px, 1.2vw, 10px);
                 font-size: clamp(0.4rem, 1.2vw, 0.6rem);
             }
 
@@ -512,7 +519,7 @@
         <div class="dashboard-header">
             <h1 class="dashboard-title">Braille Analysis Dashboard</h1>
             <div class="user-info">
-                <span class="username">Welcome, {{ username }}</span>
+                <span class="username">Welcome, {{ username | default('User') }}</span>
                 <button class="logout-btn" onclick="window.location.href='/logout'" aria-label="Logout">
                     <i class="fas fa-sign-out-alt"></i> Logout
                 </button>
@@ -534,7 +541,6 @@
             <!-- File Upload Section -->
             <div class="dashboard-card">
                 <h2 class="card-title">Upload Braille Document or Image</h2>
-
                 <form id="upload-form" action="/upload" method="POST" enctype="multipart/form-data">
                     <div class="file-upload-area" id="drop-area" role="button" aria-label="Drag and drop or click to upload a file">
                         <div class="upload-icon">
@@ -602,11 +608,17 @@
                 <h2 class="card-title">Analysis Results</h2>
 
                 {% if is_image and uploaded_image %}
+                    <!-- Image Analysis -->
                     <h3 class="result-title">Uploaded Image:</h3>
-                    <img src="data:image/jpeg;base64,{{ uploaded_image }}" class="image-preview" alt="Uploaded image for analysis">
+                    {% if uploaded_image %}
+                        <img src="{{ url_for('serve_image', filename=uploaded_image) }}" class="image-preview" alt="Uploaded image for analysis" onerror="this.style.display='none';document.getElementById('image-error').style.display='block';">
+                        <div id="image-error" class="image-error" style="display: none;">Failed to load image. Please try uploading again.</div>
+                    {% else %}
+                        <div class="image-error">No image available. Please upload an image.</div>
+                    {% endif %}
                     <h3 class="result-title">Image Analysis ({{ language|upper }}):</h3>
                     <div class="result-area" id="translated-text">
-                        {{ translated_text }}
+                        {{ translated_text | safe }}
                     </div>
                     <button id="listen-btn" class="btn" aria-label="Listen to image analysis">
                         <i class="fas fa-volume-up"></i> Listen to Analysis
@@ -614,14 +626,15 @@
                     <button id="tone-btn" class="btn" onclick="window.location.href='/tone_analysis'" aria-label="Analyze tone of image analysis">
                         <i class="fas fa-chart-line"></i> Analyze Tone
                     </button>
-                {% elif original_text %}
+                {% elif original_text and not is_image %}
+                    <!-- Document Analysis -->
                     <h3 class="result-title">Original Braille Content:</h3>
                     <div class="result-area" id="original-text">
-                        {{ original_text }}
+                        {{ original_text | safe }}
                     </div>
                     <h3 class="result-title">Translated Content ({{ language|upper }}):</h3>
                     <div class="result-area" id="translated-text">
-                        {{ translated_text }}
+                        {{ translated_text | safe }}
                     </div>
                     <button id="listen-btn" class="btn" aria-label="Listen to translated text">
                         <i class="fas fa-volume-up"></i> Listen to Translation
@@ -630,12 +643,14 @@
                         <i class="fas fa-chart-line"></i> Analyze Tone
                     </button>
                 {% else %}
+                    <!-- Placeholder when no content is uploaded -->
                     <div class="result-area" style="display: flex; justify-content: center; align-items: center; color: rgba(255,255,255,0.5);">
                         <p>Upload and process a Braille document or image to see results</p>
                     </div>
                 {% endif %}
 
                 {% if tone_points %}
+                    <!-- Tone Analysis (shown for both image and document if available) -->
                     <div class="tone-analysis">
                         <h3 class="result-title">Tone Analysis:</h3>
                         <ul>
@@ -741,10 +756,10 @@
                 return;
             }
 
-            // Check file size (e.g., limit to 10MB)
-            const maxSize = 10 * 1024 * 1024; // 10MB
+            // Check file size (5MB limit as per app.config)
+            const maxSize = 5 * 1024 * 1024; // 5MB
             if (file.size > maxSize) {
-                showError('File size exceeds 10MB limit');
+                showError('File size exceeds 5MB limit');
                 return;
             }
 
@@ -822,7 +837,7 @@
             xhr.addEventListener('load', function() {
                 if (xhr.status === 200) {
                     // Handle successful response
-                    window.location.reload();
+                    window.location.href = '/dashboard';
                 } else {
                     // Handle error
                     showError('Error processing file: ' + xhr.responseText);

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
@@ -13,12 +13,9 @@ import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.corpus import stopwords
 from nltk.probability import FreqDist
-import re, cv2
+import re
 import logging
-import numpy as np
-import base64
-from io import BytesIO
-from flask import Response
+import uuid
 
 # Download NLTK resources
 nltk.download('punkt')
@@ -40,12 +37,10 @@ app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'txt', 'doc', 'docx', 'png', 'jpg', '
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB file size limit
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-
 # Mobile detection function
 def is_mobile(request):
     user_agent = request.headers.get('User-Agent', '').lower()
     return any(m in user_agent for m in ['mobile', 'iphone', 'android', 'blackberry'])
-
 
 # Braille translation mappings
 braille_to_text = {
@@ -62,7 +57,6 @@ braille_to_text = {
     '⠀': ' ',
 }
 
-
 def init_db():
     conn = sqlite3.connect('users.db')
     c = conn.cursor()
@@ -74,25 +68,20 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 init_db()
-
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
-
 def convert_pdf_to_images(filepath):
     # Placeholder: Use pdf2image in production
     return []
-
 
 def contains_braille(text):
     for char in text:
         if '\u2800' <= char <= '\u28ff':
             return True
     return False
-
 
 def extract_text_from_file(filepath, extension):
     text = ""
@@ -120,39 +109,41 @@ def extract_text_from_file(filepath, extension):
         logging.error(f"Error extracting text from {extension}: {e}")
     return text
 
-
 def analyze_image_with_gemini(filepath):
     try:
         img = Image.open(filepath)
 
-        # Resize image if too large for mobile
+        # Convert to RGB if needed (for JPEG compatibility)
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        # Resize image if too large
         max_size = (800, 800)
         img.thumbnail(max_size, Image.Resampling.LANCZOS)
 
-        # Convert image to base64 for display
-        buffered = BytesIO()
-        img.save(buffered, format="JPEG" if img.format == 'JPEG' else "PNG")
-        encoded_image = base64.b64encode(buffered.getvalue()).decode('utf-8')
+        # Generate unique filename for the processed image
+        unique_filename = f"{uuid.uuid4().hex}.jpg"
+        processed_filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+        img.save(processed_filepath, format="JPEG", quality=85)
 
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = [
             img,
-            "Detect the image as braille image or not , if Yes analyse the image and indetify characters based on your analysis and explain about the image,"
+            "Detect the image as braille image or not, if Yes analyse the image and identify characters based on your analysis and explain about the image,"
             "Analyse the dots and give me characters information in English"
         ]
         response = model.generate_content(prompt)
 
         return {
-            'image_base64': encoded_image,
+            'image_filename': unique_filename,
             'analysis': clean_markdown(response.text)
         }
     except Exception as e:
         logging.error(f"Gemini image analysis error: {e}")
         return {
-            'image_base64': None,
+            'image_filename': None,
             'analysis': f"Error analyzing image: {str(e)}"
         }
-
 
 def convert_paragraph_to_points(paragraph, num_points=5):
     sentences = sent_tokenize(paragraph)
@@ -169,7 +160,6 @@ def convert_paragraph_to_points(paragraph, num_points=5):
     sorted_sentences = sorted(sentence_scores, key=sentence_scores.get, reverse=True)
     return sorted_sentences[:min(num_points, len(sorted_sentences))]
 
-
 def clean_markdown(text: str) -> str:
     text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
     text = re.sub(r'\*(.*?)\*', r'\1', text)
@@ -183,7 +173,6 @@ def clean_markdown(text: str) -> str:
     text = re.sub(r'^\s*[-*_]{3,}\s*$', '', text, flags=re.MULTILINE)
     text = re.sub(r'\n\s*\n', '\n\n', text)
     return text.strip()
-
 
 def translate_braille(text, language):
     translated = []
@@ -214,21 +203,14 @@ def translate_braille(text, language):
             return base_translation
     return base_translation
 
-
 @app.route('/')
 def home():
     mobile = is_mobile(request)
     return render_template('index.html', mobile=mobile)
 
-
 @app.route('/login', methods=['GET', 'POST'])
-def logs():
-    mobile = is_mobile(request)
-    return render_template('login.html', mobile=mobile)
-
-
-@app.route('/log', methods=['POST'])
 def login():
+    mobile = is_mobile(request)
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
@@ -245,18 +227,16 @@ def login():
             return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password', 'error')
-    mobile = is_mobile(request)
     return render_template('login.html', mobile=mobile)
-
 
 @app.route('/signups')
 def sign():
     mobile = is_mobile(request)
     return render_template('signup.html', mobile=mobile)
 
-
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    mobile = is_mobile(request)
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
@@ -286,15 +266,13 @@ def signup():
         conn.close()
         flash('Account created successfully! Please log in.', 'success')
         return redirect('/login')
-    mobile = is_mobile(request)
     return render_template('signup.html', mobile=mobile)
-
 
 @app.route('/dashboard', methods=['GET'])
 def dashboard():
     if 'user_id' not in session:
         flash('Please log in first', 'error')
-        return redirect(url_for('logs'))
+        return redirect(url_for('login'))
 
     mobile = is_mobile(request)
     return render_template('dashboard.html',
@@ -307,6 +285,14 @@ def dashboard():
                            is_image=session.get('is_image', False),
                            mobile=mobile)
 
+@app.route('/serve_image/<filename>')
+def serve_image(filename):
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    except Exception as e:
+        logging.error(f"Error serving image {filename}: {e}")
+        flash('Error loading image. Please try uploading again.', 'error')
+        return redirect(url_for('dashboard'))
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -330,6 +316,15 @@ def upload_file():
         return redirect(url_for('dashboard'))
 
     try:
+        # Clean up previous image if exists
+        if session.get('uploaded_image'):
+            previous_image_path = os.path.join(app.config['UPLOAD_FOLDER'], session['uploaded_image'])
+            if os.path.exists(previous_image_path):
+                try:
+                    os.remove(previous_image_path)
+                except Exception as e:
+                    logging.error(f"Error removing previous image: {e}")
+
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
@@ -345,10 +340,14 @@ def upload_file():
         if extension in ['png', 'jpg', 'jpeg']:
             # Handle image upload
             analysis_result = analyze_image_with_gemini(filepath)
+            if analysis_result['image_filename'] is None:
+                flash('Failed to process image. Please try again.', 'error')
+                return redirect(url_for('dashboard'))
             session['original_text'] = None
             session['translated_text'] = analysis_result['analysis']
-            session['uploaded_image'] = analysis_result['image_base64']
+            session['uploaded_image'] = analysis_result['image_filename']
             session['is_image'] = True
+            session['translation_language'] = language
             flash('Image analyzed successfully!', 'success')
         else:
             # Handle document upload
@@ -366,11 +365,16 @@ def upload_file():
             session['is_image'] = False
             flash('File processed successfully!', 'success')
 
+            # Remove document file after processing
+            try:
+                os.remove(filepath)
+            except Exception as e:
+                logging.error(f"Error removing document file: {e}")
+
         return redirect(url_for('dashboard'))
     except Exception as e:
         flash(f'Error processing file: {str(e)}', 'error')
         return redirect(url_for('dashboard'))
-
 
 @app.route('/tone_analysis', methods=['GET'])
 def tone_analysis():
@@ -405,13 +409,19 @@ def tone_analysis():
         flash('Error performing tone analysis.', 'error')
     return redirect(url_for('dashboard'))
 
-
 @app.route('/logout')
 def logout():
+    # Clean up image file on logout
+    if session.get('uploaded_image'):
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], session['uploaded_image'])
+        if os.path.exists(image_path):
+            try:
+                os.remove(image_path)
+            except Exception as e:
+                logging.error(f"Error removing image on logout: {e}")
     session.clear()
     flash('You have been logged out successfully', 'success')
-    return redirect(url_for('logs'))
-
+    return redirect(url_for('login'))
 
 @app.after_request
 def add_header(response):
@@ -420,7 +430,6 @@ def add_header(response):
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '-1'
     return response
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

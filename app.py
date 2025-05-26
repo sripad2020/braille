@@ -129,7 +129,13 @@ def analyze_image_with_gemini(filepath):
         model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = [
             img,
-            "Detect the image as braille image or not, if Yes analyse the image and identify characters based on your analysis and explain about the image,"
+            "Detect the image as braille image or not, if Yes analyse the image This image contains braille dots. "
+        "Please: "
+        "1. Transcribe the braille dots into English text, if possible. "
+        "2. Describe the layout, structure, and any patterns in the braille. "
+        "3. Explain what information this braille is likely conveying, so that both a visually impaired user and their caretaker can understand and use this information. "
+        "4. Make the explanation clear and concise, suitable for use with a screen reader or braille display. "
+        "Do not include unnecessary visual  analysis"
             "Analyse the dots and give me characters information in English"
         ]
         response = model.generate_content(prompt)

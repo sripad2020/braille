@@ -16,17 +16,18 @@ from nltk.probability import FreqDist
 import re
 import logging
 import uuid
+from gtts import gTTS
 
 # Download NLTK resources
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('punkt_tab')
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
 # Configure Gemini API
-genai.configure(
-    api_key=os.getenv('GEMINI_API_KEY', 'AIzaSyBvph-JgoPgpF51Fb-0Q-9ikeVwaaCTE2A'))  # Use env variable in production
+genai.configure(api_key=os.getenv('GEMINI_API_KEY', 'AIzaSyBvph-JgoPgpF51Fb-0Q-9ikeVwaaCTE2A'))
 
 app = Flask(__name__)
 app.secret_key = "The APP key"
@@ -112,34 +113,26 @@ def extract_text_from_file(filepath, extension):
 def analyze_image_with_gemini(filepath):
     try:
         img = Image.open(filepath)
-
-        # Convert to RGB if needed (for JPEG compatibility)
         if img.mode != 'RGB':
             img = img.convert('RGB')
-
-        # Resize image if too large
         max_size = (800, 800)
         img.thumbnail(max_size, Image.Resampling.LANCZOS)
-
-        # Generate unique filename for the processed image
         unique_filename = f"{uuid.uuid4().hex}.jpg"
         processed_filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         img.save(processed_filepath, format="JPEG", quality=85)
-
         model = genai.GenerativeModel('gemini-1.5-flash')
         prompt = [
             img,
             "Detect the image as braille image or not, if Yes analyse the image This image contains braille dots. "
-        "Please: "
-        "1. Transcribe the braille dots into English text, if possible. "
-        "2. Describe the layout, structure, and any patterns in the braille. "
-        "3. Explain what information this braille is likely conveying, so that both a visually impaired user and their caretaker can understand and use this information. "
-        "4. Make the explanation clear and concise, suitable for use with a screen reader or braille display. "
-        "Do not include unnecessary visual  analysis"
+            "Please: "
+            "1. Transcribe the braille dots into English text, if possible. "
+            "2. Describe the layout, structure, and any patterns in the braille. "
+            "3. Explain what information this braille is likely conveying, so that both a visually impaired user and their caretaker can understand and use this information. "
+            "4. Make the explanation clear and concise, suitable for use with a screen reader or braille display. "
+            "Do not include unnecessary visual analysis"
             "Analyse the dots and give me characters information in English"
         ]
         response = model.generate_content(prompt)
-
         return {
             'image_filename': unique_filename,
             'analysis': clean_markdown(response.text)
@@ -180,6 +173,26 @@ def clean_markdown(text: str) -> str:
     text = re.sub(r'\n\s*\n', '\n\n', text)
     return text.strip()
 
+def generate_audio(text, language):
+    try:
+        # Map language codes to gTTS-compatible codes (some may differ)
+        language_map = {
+            'en': 'en', 'es': 'es', 'fr': 'fr', 'de': 'de', 'it': 'it', 'pt': 'pt',
+            'ru': 'ru', 'zh': 'zh-cn', 'ja': 'ja', 'ar': 'ar', 'hi': 'hi', 'bn': 'bn',
+            'ta': 'ta', 'te': 'te', 'mr': 'mr', 'ur': 'ur', 'gu': 'gu', 'kn': 'kn',
+            'ml': 'ml', 'pa': 'pa', 'or': 'or', 'as': 'as', 'nl': 'nl', 'sv': 'sv',
+            'pl': 'pl', 'tr': 'tr', 'ko': 'ko'
+        }
+        gtts_lang = language_map.get(language.lower(), 'en')
+        tts = gTTS(text=text, lang=gtts_lang, slow=False)
+        audio_filename = f"{uuid.uuid4().hex}.mp3"
+        audio_filepath = os.path.join(app.config['UPLOAD_FOLDER'], audio_filename)
+        tts.save(audio_filepath)
+        return audio_filename
+    except Exception as e:
+        logging.error(f"gTTS audio generation error: {e}")
+        return None
+
 def translate_braille(text, language):
     translated = []
     i = 0
@@ -201,13 +214,16 @@ def translate_braille(text, language):
         translated.append(braille_to_text.get(char, char))
         i += 1
     base_translation = ''.join(translated)
-    if language.lower() != 'english':
+    if language.lower() != 'en':
         try:
-            return GoogleTranslator(source='auto', target=language.lower()).translate(base_translation)
+            translated_text = GoogleTranslator(source='auto', target=language.lower()).translate(base_translation)
+            # Generate audio for non-English translations
+            audio_filename = generate_audio(translated_text, language)
+            return translated_text, audio_filename
         except Exception as e:
             logging.error(f"Translation error: {e}")
-            return base_translation
-    return base_translation
+            return base_translation, None
+    return base_translation, None
 
 @app.route('/')
 def home():
@@ -278,8 +294,7 @@ def signup():
 def dashboard():
     if 'user_id' not in session:
         flash('Please log in first', 'error')
-        return redirect(url_for('/login'))
-
+        return redirect(url_for('login'))
     mobile = is_mobile(request)
     return render_template('dashboard.html',
                            username=session.get('username'),
@@ -289,6 +304,7 @@ def dashboard():
                            tone_points=session.get('tone_points'),
                            uploaded_image=session.get('uploaded_image'),
                            is_image=session.get('is_image', False),
+                           audio_file=session.get('audio_file'),  # Pass audio file to template
                            mobile=mobile)
 
 @app.route('/serve_image/<filename>')
@@ -300,29 +316,33 @@ def serve_image(filename):
         flash('Error loading image. Please try uploading again.', 'error')
         return redirect(url_for('dashboard'))
 
+@app.route('/serve_audio/<filename>')
+def serve_audio(filename):
+    try:
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    except Exception as e:
+        logging.error(f"Error serving audio {filename}: {e}")
+        flash('Error loading audio. Please try again.', 'error')
+        return redirect(url_for('dashboard'))
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'user_id' not in session:
         flash('Please log in first', 'error')
         return redirect(url_for('login'))
-
     if 'file' not in request.files:
         flash('No file selected', 'error')
         return redirect(url_for('dashboard'))
-
     file = request.files['file']
     language = request.form.get('language', 'en')
-
     if file.filename == '':
         flash('No file selected', 'error')
         return redirect(url_for('dashboard'))
-
     if not allowed_file(file.filename):
         flash('Allowed file types are PDF, TXT, DOC, DOCX, PNG, JPG, JPEG', 'error')
         return redirect(url_for('dashboard'))
-
     try:
-        # Clean up previous image if exists
+        # Clean up previous files
         if session.get('uploaded_image'):
             previous_image_path = os.path.join(app.config['UPLOAD_FOLDER'], session['uploaded_image'])
             if os.path.exists(previous_image_path):
@@ -330,19 +350,24 @@ def upload_file():
                     os.remove(previous_image_path)
                 except Exception as e:
                     logging.error(f"Error removing previous image: {e}")
-
+        if session.get('audio_file'):
+            previous_audio_path = os.path.join(app.config['UPLOAD_FOLDER'], session['audio_file'])
+            if os.path.exists(previous_audio_path):
+                try:
+                    os.remove(previous_audio_path)
+                except Exception as e:
+                    logging.error(f"Error removing previous audio: {e}")
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         extension = filename.rsplit('.', 1)[1].lower()
-
         # Clear previous session data
         session.pop('original_text', None)
         session.pop('translated_text', None)
         session.pop('tone_points', None)
         session.pop('uploaded_image', None)
         session.pop('is_image', None)
-
+        session.pop('audio_file', None)
         if extension in ['png', 'jpg', 'jpeg']:
             # Handle image upload
             analysis_result = analyze_image_with_gemini(filepath)
@@ -354,6 +379,11 @@ def upload_file():
             session['uploaded_image'] = analysis_result['image_filename']
             session['is_image'] = True
             session['translation_language'] = language
+            # Generate audio for image analysis if language is not English
+            if language.lower() != 'en':
+                audio_filename = generate_audio(analysis_result['analysis'], language)
+                if audio_filename:
+                    session['audio_file'] = audio_filename
             flash('Image analyzed successfully!', 'success')
         else:
             # Handle document upload
@@ -364,19 +394,19 @@ def upload_file():
             if not contains_braille(text):
                 flash('The file does not contain Braille characters', 'error')
                 return redirect(url_for('dashboard'))
-            translated = translate_braille(text, language)
+            translated_text, audio_filename = translate_braille(text, language)
             session['original_text'] = text[:1000] + "..." if len(text) > 1000 else text
-            session['translated_text'] = translated[:1000] + "..." if len(translated) > 1000 else translated
+            session['translated_text'] = translated_text[:1000] + "..." if len(translated_text) > 1000 else translated_text
             session['translation_language'] = language
             session['is_image'] = False
+            if audio_filename:
+                session['audio_file'] = audio_filename
             flash('File processed successfully!', 'success')
-
             # Remove document file after processing
             try:
                 os.remove(filepath)
             except Exception as e:
                 logging.error(f"Error removing document file: {e}")
-
         return redirect(url_for('dashboard'))
     except Exception as e:
         flash(f'Error processing file: {str(e)}', 'error')
@@ -395,13 +425,11 @@ def tone_analysis():
         prompt = f"""
         Analyze the tone of the following text and describe its emotional sentiment (e.g., positive, negative, neutral, etc.):
         "{session['translated_text'][:1000]}"
-
         Provide:
         1. The overall tone of the text (e.g., positive, negative, neutral).
         2. Key indicators in the text that suggest this tone.
         3. Potential contexts where this tone might be used.
         4. Any nuances or mixed tones present.
-
         Format the response in clear bullet points.
         """
         response = model.generate_content(prompt, generation_config={"max_output_tokens": 500})
@@ -417,7 +445,7 @@ def tone_analysis():
 
 @app.route('/logout')
 def logout():
-    # Clean up image file on logout
+    # Clean up files on logout
     if session.get('uploaded_image'):
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], session['uploaded_image'])
         if os.path.exists(image_path):
@@ -425,13 +453,19 @@ def logout():
                 os.remove(image_path)
             except Exception as e:
                 logging.error(f"Error removing image on logout: {e}")
+    if session.get('audio_file'):
+        audio_path = os.path.join(app.config['UPLOAD_FOLDER'], session['audio_file'])
+        if os.path.exists(audio_path):
+            try:
+                os.remove(audio_path)
+            except Exception as e:
+                logging.error(f"Error removing audio on logout: {e}")
     session.clear()
     flash('You have been logged out successfully', 'success')
     return redirect(url_for('login'))
 
 @app.after_request
 def add_header(response):
-    # Disable caching for all routes
     response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '-1'

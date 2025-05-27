@@ -798,11 +798,7 @@
             errorDiv.className = 'alert alert-error';
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
-
-            // Insert after the file upload area
             dropArea.parentNode.insertBefore(errorDiv, dropArea.nextSibling);
-
-            // Remove after 5 seconds
             setTimeout(() => {
                 errorDiv.style.transition = 'opacity 1s ease';
                 errorDiv.style.opacity = '0';
@@ -815,45 +811,34 @@
         // Form submission with progress tracking
         uploadForm.addEventListener('submit', function(e) {
             e.preventDefault();
-
             const formData = new FormData(this);
             const xhr = new XMLHttpRequest();
-
-            // Show progress bar
             progressContainer.style.display = 'block';
             progressBar.style.width = '0%';
-
-            // Disable submit button during upload
             submitBtn.disabled = true;
             submitBtn.textContent = 'Processing...';
-
             xhr.upload.addEventListener('progress', function(e) {
                 if (e.lengthComputable) {
                     const percentComplete = (e.loaded / e.total) * 100;
                     progressBar.style.width = percentComplete + '%';
                 }
             });
-
             xhr.addEventListener('load', function() {
                 if (xhr.status === 200) {
-                    // Handle successful response
                     window.location.href = '/dashboard';
                 } else {
-                    // Handle error
                     showError('Error processing file: ' + xhr.responseText);
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Process Document/Image';
                     progressContainer.style.display = 'none';
                 }
             });
-
             xhr.addEventListener('error', function() {
                 showError('Error uploading file. Please try again.');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Process Document/Image';
                 progressContainer.style.display = 'none';
             });
-
             xhr.open('POST', '/upload', true);
             xhr.send(formData);
         });
@@ -872,31 +857,55 @@
                 return;
             }
 
-            // Get selected language from dropdown
             const langCode = document.getElementById('language').value;
 
-            // Check if browser supports speech synthesis
+            // Check if an audio file is available (for non-English languages)
+            const audioFile = "{{ audio_file | default('') }}";
+            if (audioFile && langCode !== 'en') {
+                const audio = new Audio('/serve_audio/' + audioFile);
+                listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> Speaking...';
+                listenBtn.disabled = true;
+
+                audio.addEventListener('ended', function() {
+                    listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> {% if is_image %}Listen to Analysis{% else %}Listen to Translation{% endif %}';
+                    listenBtn.disabled = false;
+                });
+
+                audio.addEventListener('error', function() {
+                    showError('Error playing audio. Please try again.');
+                    listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> {% if is_image %}Listen to Analysis{% else %}Listen to Translation{% endif %}';
+                    listenBtn.disabled = false;
+                });
+
+                audio.play().catch(error => {
+                    console.error('Audio playback error:', error);
+                    showError('Error playing audio. Please try again.');
+                    listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> {% if is_image %}Listen to Analysis{% else %}Listen to Translation{% endif %}';
+                    listenBtn.disabled = false;
+                });
+                return;
+            }
+
+            // Fallback to SpeechSynthesis for English or if no audio file
             if (!window.speechSynthesis) {
                 showError('Text-to-speech is not supported in your browser.');
                 return;
             }
 
             const utterance = new SpeechSynthesisUtterance(translatedText.textContent);
-            utterance.lang = langCode; // Set language code
-            utterance.rate = 0.9; // Slightly slower than default
+            utterance.lang = 'en'; // Default to English for SpeechSynthesis
+            utterance.rate = 0.9;
 
-            // Try to find a voice matching the language
             const voices = window.speechSynthesis.getVoices();
             const preferredVoice = voices.find(voice =>
-                voice.lang.startsWith(langCode) ||
-                voice.lang.replace(/-.*/, '') === langCode
+                voice.lang.startsWith('en') ||
+                voice.lang.replace(/-.*/, '') === 'en'
             );
 
             if (preferredVoice) {
                 utterance.voice = preferredVoice;
             }
 
-            // Visual feedback while speaking
             listenBtn.innerHTML = '<i class="fas fa-volume-up"></i> Speaking...';
             listenBtn.disabled = true;
 
